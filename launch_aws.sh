@@ -6,7 +6,7 @@ set -o pipefail
 KEY_PATH=""
 REGION="eu-north-1" # Stockholm
 INSTANCE_TYPE="c7i.12xlarge"
-AMI_ID="ami-0ac901f79b0bf67c0" # Ubuntu 24.04 LTS
+AMI_ID="" # Will be auto-detected based on region
 CLOUD_INIT_FILE="fds-cloud-init.yaml"
 
 # Global variables
@@ -261,6 +261,23 @@ setup_network() {
     setup_security_group || return 1
 }
 
+find_ami() {
+    local ami
+    ami=$(aws ec2 describe-images \
+        --region "$REGION" \
+        --owners 099720109477 \
+        --filters "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" \
+        --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
+        --output text 2>&1)
+
+    if [ -z "$ami" ] || [ "$ami" == "None" ]; then
+        echo "ERROR: Could not find Ubuntu 24.04 AMI in $REGION" >&2
+        return 1
+    fi
+
+    echo "$ami"
+}
+
 # --- INSTANCE FUNCTIONS ---
 
 try_launch_in_subnet() {
@@ -468,10 +485,6 @@ parse_arguments() {
                 INSTANCE_TYPE="$2"
                 shift 2
                 ;;
-            --ami-id)
-                AMI_ID="$2"
-                shift 2
-                ;;
             *)
                 FDS_FILES+=("$1")
                 shift
@@ -518,7 +531,7 @@ validate_arguments() {
 }
 
 print_usage() {
-    echo "Usage: $0 --key-path PATH [--region REGION] [--instance-type TYPE] [--ami-id AMI] <fds_file1> [fds_file2] ..."
+    echo "Usage: $0 --key-path PATH [--region REGION] [--instance-type TYPE] <fds_file1> [fds_file2] ..."
     echo ""
     echo "Required arguments:"
     echo "  --key-path PATH        Path to SSH private key (key name derived from basename)"
@@ -526,7 +539,6 @@ print_usage() {
     echo "Optional arguments:"
     echo "  --region REGION        AWS region (default: eu-north-1)"
     echo "  --instance-type TYPE   EC2 instance type (default: c7i.12xlarge)"
-    echo "  --ami-id AMI           Ubuntu AMI ID (default: ami-0ac901f79b0bf67c0)"
     echo ""
     echo "Example:"
     echo "  $0 --key-path ~/.ssh/fds-key-pair tier1_1.fds tier1_2.fds"
@@ -610,6 +622,16 @@ main() {
 
     if ! validate_arguments; then
         exit 1
+    fi
+
+    # Auto-detect AMI if not provided
+    if [ -z "$AMI_ID" ]; then
+        AMI_ID=$(find_ami)
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+        echo "   Using AMI: $AMI_ID"
+        echo ""
     fi
 
     print_config
