@@ -87,7 +87,7 @@
 
 ! --- GEOMETRY ---
 &OBST XB=0.0,10.0, 5.05,5.25, 0.0,90.0, SURF_ID='WALL_SURF' /
-&OBST XB=0.0,10.0, 4.625,4.673, 0.0,90.0, SURF_ID='STEEL_SURF' /  ! Steel scaffold: 48mm dia (BS1139)
+&OBST XB=0.0,10.0, 4.625,4.625, 0.0,90.0, SURF_ID='STEEL_SURF', THICKEN=.FALSE. /
 &OBST XB=0.0,10.0, 4.2,4.22, 0.0,90.0, SURF_ID='FR_NET_SURF' /
 
 ! WINDOWS (Styrofoam sealing - 31 floors x 4 windows = 124 windows)
