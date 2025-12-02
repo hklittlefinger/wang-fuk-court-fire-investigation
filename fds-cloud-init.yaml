@@ -16,6 +16,10 @@ packages:
   - unzip
   - wget
   - curl
+  - gnupg
+  - libfuse2t64
+  - inotify-tools
+  - rsync
 
 write_files:
   - path: /tmp/ghostty.terminfo
@@ -76,59 +80,149 @@ write_files:
     permissions: '0755'
     content: |
       #!/bin/bash
-      set -euo pipefail
+      set -euxo pipefail
 
-      # Install ghostty terminfo
-      echo "Installing ghostty terminfo..." | tee -a /var/log/fds-setup.log
-      tic -x /tmp/ghostty.terminfo 2>&1 | tee -a /var/log/fds-setup.log || true
+      tic -x /tmp/ghostty.terminfo || true
       rm -f /tmp/ghostty.terminfo
 
-      echo "Installing FDS..." | tee -a /var/log/fds-setup.log
-
-      # Find latest FDS release
-      echo "Fetching latest FDS release info..." | tee -a /var/log/fds-setup.log
       LATEST_URL=$(curl -s --retry 3 --retry-delay 1 --max-time 10 https://api.github.com/repos/firemodels/fds/releases/latest | jq -r '.assets[] | select(.name | endswith("_lnx.sh")) | .browser_download_url')
-
-      if [ -z "$LATEST_URL" ]; then
-        echo "ERROR: Failed to get FDS download URL" >&2 | tee -a /var/log/fds-setup.log
-        exit 1
-      fi
-
-      echo "Downloading from: $LATEST_URL" | tee -a /var/log/fds-setup.log
-      if ! curl --no-progress-meter -L --retry 3 --retry-delay 1 --max-time 300 -o /tmp/fds_installer.sh "$LATEST_URL" 2>&1 | tee -a /var/log/fds-setup.log; then
-        echo "ERROR: Failed to download FDS installer" >&2 | tee -a /var/log/fds-setup.log
-        exit 1
-      fi
-
+      curl -L --retry 3 --retry-delay 1 --max-time 300 -o /tmp/fds_installer.sh "$LATEST_URL"
       chmod +x /tmp/fds_installer.sh
 
-      # Run installer as ubuntu user (not root)
-      echo "Running FDS installer..." | tee -a /var/log/fds-setup.log
-      if ! su - ubuntu -c "cd /tmp && ./fds_installer.sh y" 2>&1 | tee -a /var/log/fds-setup.log; then
-        echo "ERROR: FDS installer failed" >&2 | tee -a /var/log/fds-setup.log
-        exit 1
-      fi
+      su - ubuntu -c "cd /tmp && ./fds_installer.sh y"
 
-      # Verify installation
-      if [ ! -d "/home/ubuntu/FDS/FDS6" ]; then
-        echo "ERROR: FDS installation directory not found" >&2 | tee -a /var/log/fds-setup.log
-        exit 1
-      fi
+      grep -q "FDS6VARS.sh" /home/ubuntu/.bashrc || echo "source /home/ubuntu/FDS/FDS6/bin/FDS6VARS.sh" >> /home/ubuntu/.bashrc
+      chown ubuntu:ubuntu /home/ubuntu/.bashrc
 
-      # Setup environment for ubuntu user
-      if ! grep -q "FDS6VARS.sh" /home/ubuntu/.bashrc; then
-        echo "source /home/ubuntu/FDS/FDS6/bin/FDS6VARS.sh" >> /home/ubuntu/.bashrc
-        chown ubuntu:ubuntu /home/ubuntu/.bashrc
-      fi
-
-      echo "FDS installed successfully in /home/ubuntu/FDS/FDS6" | tee -a /var/log/fds-setup.log
-
-      # Clean up installer
       rm -f /tmp/fds_installer.sh
+  - path: /tmp/install-mountpoint-s3.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -euxo pipefail
 
-      echo "FDS setup complete" | tee -a /var/log/fds-setup.log
+      ARCH=$(uname -m)
+      if [ "$ARCH" = "aarch64" ]; then
+        ARCH="arm64"
+      fi
+
+      # Get DEB and signature URLs
+      RELEASE_BODY=$(curl -s --retry 3 --retry-delay 1 --max-time 10 https://api.github.com/repos/awslabs/mountpoint-s3/releases/latest | jq -r '.body')
+      DEB_URL=$(echo "$RELEASE_BODY" | grep -o 'https://[^ ]*' | grep '\.deb' | grep -v '\.asc' | grep "$ARCH" | tr -d '\r')
+      SIG_URL="${DEB_URL}.asc"
+
+      # Download package and signature
+      curl -L --retry 3 --retry-delay 1 --max-time 60 -o /tmp/mount-s3.deb "$DEB_URL"
+      curl -L --retry 3 --retry-delay 1 --max-time 60 -o /tmp/mount-s3.deb.asc "$SIG_URL"
+
+      # Import and verify AWS mountpoint-s3 public key
+      curl -L --retry 3 --retry-delay 1 --max-time 60 -o /tmp/mountpoint-keys https://s3.amazonaws.com/mountpoint-s3-release/public_keys/KEYS
+      gpg --import /tmp/mountpoint-keys
+
+      # Verify signature
+      gpg --verify /tmp/mount-s3.deb.asc /tmp/mount-s3.deb
+
+      # Install package
+      dpkg -i /tmp/mount-s3.deb
+
+      # Cleanup
+      rm -f /tmp/mount-s3.deb /tmp/mount-s3.deb.asc /tmp/mountpoint-keys
+
+      mkdir -p /mnt/fds-output
+      chown ubuntu:ubuntu /mnt/fds-output
+  - path: /usr/local/bin/sync-to-s3.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      # Sync script that watches a local directory and copies changed files to S3 mount
+      # Usage: sync-to-s3.sh <local_dir> <s3_mount_dir>
+
+      if [ "$#" -ne 2 ]; then
+          echo "Usage: $0 <local_dir> <s3_mount_dir>"
+          exit 1
+      fi
+
+      LOCAL_DIR="$1"
+      S3_MOUNT_DIR="$2"
+
+      echo "Starting file sync: $LOCAL_DIR -> $S3_MOUNT_DIR"
+
+      # Create S3 directory if it doesn't exist
+      mkdir -p "$S3_MOUNT_DIR"
+
+      # Initial sync of existing files
+      echo "Performing initial sync..."
+      rsync -rlv --ignore-existing "$LOCAL_DIR/" "$S3_MOUNT_DIR/"
+
+      # Watch for file changes and sync
+      inotifywait -m -r -e close_write,moved_to,create "$LOCAL_DIR" --format '%w%f' | while read -r FILE
+      do
+          # Get relative path
+          REL_PATH="${FILE#"$LOCAL_DIR"/}"
+
+          # Skip if it's a directory
+          if [ -d "$FILE" ]; then
+              mkdir -p "$S3_MOUNT_DIR/$REL_PATH"
+              continue
+          fi
+
+          # Copy file to S3 mount
+          DEST_DIR=$(dirname "$S3_MOUNT_DIR/$REL_PATH")
+          mkdir -p "$DEST_DIR"
+
+          echo "Syncing: $REL_PATH"
+          cp -f "$FILE" "$S3_MOUNT_DIR/$REL_PATH"
+      done
+  - path: /etc/systemd/system/mount-s3.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Mount S3 bucket using mountpoint-s3
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=forking
+      User=ubuntu
+      Group=ubuntu
+      ExecStart=/usr/bin/mount-s3 --region us-east-1 --allow-overwrite --allow-delete fds-output-wang-fuk-fire /mnt/fds-output
+      ExecStartPost=/bin/sh -c 'timeout 30 sh -c "while ! mountpoint -q /mnt/fds-output; do sleep 1; done"'
+      ExecStop=/usr/bin/umount /mnt/fds-output
+      Restart=on-failure
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/systemd/system/fds-sync.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Sync FDS output to S3
+      After=mount-s3.service
+      Requires=mount-s3.service
+
+      [Service]
+      Type=simple
+      User=ubuntu
+      Group=ubuntu
+      ExecStart=/usr/local/bin/sync-to-s3.sh /home/ubuntu/fds-work /mnt/fds-output
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
 
 runcmd:
   - /tmp/install-fds.sh
+  - /tmp/install-mountpoint-s3.sh
+  - mkdir -p /home/ubuntu/fds-work
+  - chown ubuntu:ubuntu /home/ubuntu/fds-work
+  - systemctl daemon-reload
+  - systemctl enable mount-s3.service
+  - systemctl enable fds-sync.service
+  - systemctl start mount-s3.service
+  - systemctl start fds-sync.service
 
-final_message: "FDS instance setup complete. Check /var/log/fds-setup.log for details."
+final_message: "FDS instance setup complete. Check /var/log/cloud-init-output.log for details."
