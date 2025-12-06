@@ -23,7 +23,7 @@ function print_usage() {
     echo ""
     echo "Optional arguments:"
     echo "  --watch                   Continuous monitoring mode"
-    echo "  --interval SECONDS        Check interval for watch mode (default: 20)"
+    echo "  --interval SECONDS        Check interval for watch mode (default: 60)"
     echo "  --auto-restart            Automatically restart terminated spot instances"
     echo ""
     echo "Examples:"
@@ -128,31 +128,40 @@ function calculate_progress() {
 
     local ELAPSED_WALL_TIME=$((CURRENT_TIME - START_TIME))
 
+    # Guard against division by zero
+    if [ "$ELAPSED_WALL_TIME" -lt 1 ]; then
+        ELAPSED_WALL_TIME=1
+    fi
+
     # Calculate progress percentage
     local PROGRESS
     PROGRESS=$(printf "%.2f" "$(echo "scale=4; ($CURRENT_SIM_TIME * 100) / $TARGET_TIME" | bc -l)")
 
-    # Calculate elapsed wall minutes
+    # Calculate elapsed wall minutes (minimum 0.01 to avoid division by zero)
     local ELAPSED_WALL_MINS
-    ELAPSED_WALL_MINS=$(echo "scale=2; $ELAPSED_WALL_TIME / 60" | bc -l)
+    ELAPSED_WALL_MINS=$(echo "scale=2; x=$ELAPSED_WALL_TIME / 60; if (x < 0.01) 0.01 else x" | bc -l)
 
     # Calculate rate (sim seconds per wall minute)
     local RATE
     RATE=$(printf "%.2f" "$(echo "scale=4; $CURRENT_SIM_TIME / $ELAPSED_WALL_MINS" | bc -l)")
 
-    # Estimate remaining time
+    # Estimate remaining time (guard against zero rate)
     local REMAINING_SIM_TIME
     REMAINING_SIM_TIME=$(echo "$TARGET_TIME - $CURRENT_SIM_TIME" | bc -l)
     local ESTIMATED_WALL_MINS
-    ESTIMATED_WALL_MINS=$(echo "scale=0; $REMAINING_SIM_TIME / $RATE" | bc -l)
+    if [ "$(echo "$RATE > 0" | bc -l)" = "1" ]; then
+        ESTIMATED_WALL_MINS=$(echo "scale=0; $REMAINING_SIM_TIME / $RATE" | bc -l)
+    else
+        ESTIMATED_WALL_MINS=0
+    fi
 
     # Format elapsed time
     local ELAPSED_HOURS=$((ELAPSED_WALL_TIME / 3600))
     local ELAPSED_MINS=$(((ELAPSED_WALL_TIME % 3600) / 60))
 
-    # Format estimated finish time
+    # Format estimated finish time (convert to integer for bash arithmetic)
     local ESTIMATED_WALL_SECONDS
-    ESTIMATED_WALL_SECONDS=$(echo "$ESTIMATED_WALL_MINS * 60" | bc)
+    ESTIMATED_WALL_SECONDS=$(printf "%.0f" "$(echo "$ESTIMATED_WALL_MINS * 60" | bc)")
     local FINISH_TIMESTAMP=$((CURRENT_TIME + ESTIMATED_WALL_SECONDS))
     local FINISH_TIME
     FINISH_TIME=$(date -d "@$FINISH_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2> /dev/null || date -r "$FINISH_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2> /dev/null || echo "unknown")
@@ -177,7 +186,7 @@ function check_aws_instance() {
     # Check for spot interruption first
     if [ "$STATE_REASON" = "Server.SpotInstanceTermination" ]; then
         echo "Status: 🚨 SPOT INTERRUPTED"
-        return 10
+        return 11  # Special code for spot interruption
     fi
 
     # Check if instance is running
@@ -192,6 +201,7 @@ function check_aws_instance() {
 function check_simulation_completion() {
     local IP=$1
     local TMUX_OUTPUT=$2
+    local SIM_FILE=$3
 
     # Check if pane is dead (process exited)
     local PANE_DEAD
@@ -204,6 +214,40 @@ function check_simulation_completion() {
     # Pane is dead, get exit status
     local EXIT_STATUS
     EXIT_STATUS=$(ssh_exec "$IP" "tmux display-message -p -t fds_run '#{pane_dead_status}'" 2> /dev/null || echo "")
+
+    # Get more output to check for errors (FDS may exit 0 even on ERROR)
+    local FULL_OUTPUT
+    FULL_OUTPUT=$(ssh_exec "$IP" "tmux capture-pane -p -t fds_run -S -100" 2> /dev/null || echo "")
+
+    # Check for ERROR in output (FDS returns exit code 0 even on numerical instability)
+    if echo "$FULL_OUTPUT" | grep -q "ERROR"; then
+        echo "Status: ❌ ERROR (found ERROR in output, exit code: ${EXIT_STATUS:-unknown})"
+        echo ""
+        echo "Last output:"
+        echo "$FULL_OUTPUT" | grep -A5 "ERROR" | head -10
+        echo ""
+        return 3
+    fi
+
+    # Check if simulation actually completed (reached T_END)
+    local T_END
+    T_END=$(get_fds_end_time "$SIM_FILE")
+    local LAST_SIM_TIME
+    LAST_SIM_TIME=$(echo "$FULL_OUTPUT" | grep "Simulation Time:" | tail -1 | sed -n 's/.*Simulation Time:[[:space:]]*\([0-9.]*\).*/\1/p')
+
+    if [ -n "$LAST_SIM_TIME" ] && [ -n "$T_END" ]; then
+        # Check if we reached at least 99% of T_END
+        local PROGRESS
+        PROGRESS=$(echo "scale=2; $LAST_SIM_TIME / $T_END" | bc -l 2>/dev/null || echo "0")
+        if [ "$(echo "$PROGRESS < 0.99" | bc -l 2>/dev/null || echo 1)" = "1" ]; then
+            echo "Status: ❌ INCOMPLETE (reached ${LAST_SIM_TIME}s / ${T_END}s, exit code: ${EXIT_STATUS:-unknown})"
+            echo ""
+            echo "Last output:"
+            echo "$TMUX_OUTPUT" | tail -10
+            echo ""
+            return 3
+        fi
+    fi
 
     if [ "$EXIT_STATUS" = "0" ]; then
         echo "Status: ✅ COMPLETED"
@@ -238,9 +282,11 @@ function check_instance_status() {
     echo "========================================"
 
     # Check AWS instance state
-    if ! check_aws_instance "$REGION" "$INSTANCE_ID"; then
+    check_aws_instance "$REGION" "$INSTANCE_ID"
+    local AWS_STATUS=$?
+    if [ "$AWS_STATUS" -ne 0 ]; then
         echo ""
-        return 10
+        return "$AWS_STATUS"  # Propagate 10 (not running) or 11 (spot interrupted)
     fi
 
     # Check if SSH is accessible
@@ -262,109 +308,88 @@ function check_instance_status() {
     TMUX_OUTPUT=$(ssh_exec "$IP" "tmux capture-pane -p -t fds_run | tail -20")
 
     # Check if simulation has completed or errored
-    check_simulation_completion "$IP" "$TMUX_OUTPUT"
+    check_simulation_completion "$IP" "$TMUX_OUTPUT" "$SIM_FILE"
     local COMPLETION_STATUS=$?
     if [ "$COMPLETION_STATUS" -ne 0 ]; then
         return "$COMPLETION_STATUS"
     fi
 
-    # Extract current time step if running
-    local TIME_STEP
-    TIME_STEP=$(echo "$TMUX_OUTPUT" | grep "Time Step:" | tail -1)
-    if [ -n "$TIME_STEP" ]; then
-        echo "Status: 🔄 RUNNING"
-        echo "$TIME_STEP"
-
-        # Extract simulation time and calculate progress
-        local CURRENT_SIM_TIME
-        CURRENT_SIM_TIME=$(echo "$TIME_STEP" | sed -n 's/.*Simulation Time:[[:space:]]*\([0-9.]*\).*/\1/p')
-        CURRENT_SIM_TIME=${CURRENT_SIM_TIME:-0}
-        local TARGET_TIME
-        TARGET_TIME=$(get_fds_end_time "$SIM_FILE")
-
-        # Get process start time from FDS output file birth time (Linux)
-        local START_TIME
-        local SIM_BASE="${SIM_FILE%.fds}"
-        local CHID
-        CHID=$(basename "$SIM_BASE")
-        START_TIME=$(ssh_exec "$IP" "stat -c %W /home/ubuntu/fds-work/${CHID}/${CHID}.out 2>/dev/null || echo 0")
-        local CURRENT_TIME
-        CURRENT_TIME=$(date +%s)
-
-        # Only calculate progress if we have valid start time (>0 and not epoch)
-        # and simulation has started (CURRENT_SIM_TIME > 0)
-        if [ "$START_TIME" -gt 0 ] && [ "$(echo "$CURRENT_SIM_TIME > 0" | bc -l 2> /dev/null || echo 0)" = "1" ]; then
-            calculate_progress "$CURRENT_SIM_TIME" "$TARGET_TIME" "$START_TIME" "$CURRENT_TIME"
-        fi
-
-        echo ""
-        echo "Last few time steps:"
-        echo "$TMUX_OUTPUT" | grep "Time Step:" | tail -5
-        echo ""
-        return 0
-    else
-        echo "Status: ⚠️  UNKNOWN - No time step output"
-        echo ""
-        echo "Last output:"
-        echo "$TMUX_OUTPUT"
-        echo ""
-        return 1
-    fi
-}
-
-function check_s3_for_completion() {
-    local SIM_FILE=$1
-    local SIM_BASE="${SIM_FILE%.fds}"
-    local CHID
-    CHID=$(basename "$SIM_BASE")
-
-    echo "   Checking S3 for simulation status..."
-
-    # Stream .out file from S3 and check last 50 lines for STOP message
-    local STOP_MSG
-    STOP_MSG=$(aws s3 cp "s3://${S3_BUCKET}/${CHID}/${CHID}.out" - 2> /dev/null | tail -50 | grep "STOP:" | tail -1)
-
-    if [ -n "$STOP_MSG" ]; then
-        if echo "$STOP_MSG" | grep -q "FDS completed successfully"; then
-            echo "   ✅ Simulation completed successfully"
-            echo "   $STOP_MSG"
-            echo "   → Not restarting completed simulation"
-            return 1
-        else
-            echo "   ❌ Simulation stopped with error/crash:"
-            echo "   $STOP_MSG"
-            echo "   → Not restarting crashed simulation"
-            return 1
-        fi
-    fi
-
-    echo "   ✓ No completion or crash markers found, safe to restart"
+    # Simulation is running
+    show_running_status "$IP" "$SIM_FILE" "$TMUX_OUTPUT"
     return 0
 }
 
-function restart_simulation() {
+function show_running_status() {
+    local IP=$1
+    local SIM_FILE=$2
+    local TMUX_OUTPUT=$3
+
+    echo "Status: 🔄 RUNNING"
+
+    local TIME_STEP
+    TIME_STEP=$(echo "$TMUX_OUTPUT" | grep "Time Step:" | tail -1)
+    [ -z "$TIME_STEP" ] && echo "" && return
+
+    echo "$TIME_STEP"
+
+    local CURRENT_SIM_TIME
+    CURRENT_SIM_TIME=$(echo "$TIME_STEP" | sed -n 's/.*Simulation Time:[[:space:]]*\([0-9.]*\).*/\1/p')
+    CURRENT_SIM_TIME=${CURRENT_SIM_TIME:-0}
+
+    local TARGET_TIME
+    TARGET_TIME=$(get_fds_end_time "$SIM_FILE")
+
+    local CHID
+    CHID=$(get_chid "$SIM_FILE")
+
+    local START_TIME
+    START_TIME=$(ssh_exec "$IP" "stat -c %W /home/ubuntu/fds-work/${CHID}/${CHID}.out 2>/dev/null || echo 0")
+
+    local CURRENT_TIME
+    CURRENT_TIME=$(date +%s)
+
+    if [ "$START_TIME" -gt 0 ] && [ "$(echo "$CURRENT_SIM_TIME > 0" | bc -l 2>/dev/null || echo 0)" = "1" ]; then
+        calculate_progress "$CURRENT_SIM_TIME" "$TARGET_TIME" "$START_TIME" "$CURRENT_TIME"
+    fi
+
+    echo ""
+    echo "Last few time steps:"
+    echo "$TMUX_OUTPUT" | grep "Time Step:" | tail -5
+    echo ""
+}
+
+# Check simulation status from S3 output when instance is not accessible
+# Returns: "completed" or "failed"
+function check_sim_status_from_s3() {
     local SIM_FILE=$1
-    local INSTANCE_TYPE=$2
-    local OLD_INSTANCE_ID=$3
+    local CHID
+    CHID=$(get_chid "$SIM_FILE")
 
-    echo "🔄 Restarting simulation: $SIM_FILE"
-
-    # Check S3 for completion/crash evidence before restarting
-    if ! check_s3_for_completion "$SIM_FILE"; then
-        return 1
-    fi
-
-    local TARGET_REGION
-    TARGET_REGION=$(find_cheapest_region "$INSTANCE_TYPE")
-    echo "   Target region: $TARGET_REGION"
-
-    if $LAUNCH_SCRIPT --key-path "$KEY_PATH" --replace-instance-id "$OLD_INSTANCE_ID" --region "$TARGET_REGION" --instance-type "$INSTANCE_TYPE" "$SIM_FILE"; then
-        echo "✅ Successfully restarted $SIM_FILE in $TARGET_REGION"
-        return 0
+    # Check for successful completion in .out file
+    if aws s3 cp "s3://${S3_BUCKET}/${CHID}/${CHID}.out" - 2>/dev/null | tail -50 | grep -iq "STOP.*completed"; then
+        echo "completed"
     else
-        echo "❌ Failed to restart $SIM_FILE"
+        echo "failed"
+    fi
+}
+
+function is_simulation_restartable() {
+    local SIM_FILE=$1
+    local CHID
+    CHID=$(get_chid "$SIM_FILE")
+
+    # Check for restart files in S3
+    local RESTART_COUNT
+    RESTART_COUNT=$(aws s3 ls "s3://${S3_BUCKET}/${CHID}/" 2>/dev/null | grep -c '\.restart' || true)
+
+    if [ "$RESTART_COUNT" -eq 0 ]; then
         return 1
     fi
+
+    # Not restartable if already completed
+    [ "$(check_sim_status_from_s3 "$SIM_FILE")" = "completed" ] && return 1
+
+    return 0
 }
 
 function check_all_instances() {
@@ -372,103 +397,73 @@ function check_all_instances() {
     local RUNNING=0
     local COMPLETED=0
     local ERRORS=0
-    local UNKNOWN=0
     local NOT_RUNNING=0
+    local INTERRUPTED=0
 
     while IFS='|' read -r IP INSTANCE_ID SIM_FILE REGION INSTANCE_TYPE; do
-        # Skip empty lines
         [ -z "$IP" ] && continue
-
         : $((TOTAL++))
 
         check_instance_status "$IP" "$INSTANCE_ID" "$SIM_FILE" "$REGION" "$INSTANCE_TYPE"
         local STATUS=$?
 
-        # Return codes: 0=running, 1=unknown, 2=completed, 3=error, 10=not running/inaccessible
         case $STATUS in
             0)
+                # Simulation is running
                 : $((RUNNING++))
-                ;;
-            1)
-                : $((UNKNOWN++))
+                update_sim_status "$INSTANCE_ID" "running"
                 ;;
             2)
+                # Simulation completed successfully
                 : $((COMPLETED++))
-                update_instance_status "$INSTANCE_ID" "completed"
+                update_sim_status "$INSTANCE_ID" "completed"
+                update_instance_status "$INSTANCE_ID" "terminated"
                 echo "🛑 Terminating completed instance $INSTANCE_ID in $REGION..."
                 aws ec2 terminate-instances --instance-ids "$INSTANCE_ID" --region "$REGION" > /dev/null 2>&1 || echo "   ⚠️  Warning: Failed to terminate instance"
                 ;;
             3)
+                # Simulation failed (FDS error)
                 : $((ERRORS++))
-                update_instance_status "$INSTANCE_ID" "failed"
+                update_sim_status "$INSTANCE_ID" "failed"
+                update_instance_status "$INSTANCE_ID" "terminated"
                 echo "🛑 Terminating failed instance $INSTANCE_ID in $REGION..."
                 aws ec2 terminate-instances --instance-ids "$INSTANCE_ID" --region "$REGION" > /dev/null 2>&1 || echo "   ⚠️  Warning: Failed to terminate instance"
                 ;;
             10)
+                # Instance not running - check S3 for actual sim status
                 : $((NOT_RUNNING++))
-                if [ "$AUTO_RESTART" = true ]; then
-                    echo "🚨 Instance terminated, restarting..."
-                    if restart_simulation "$SIM_FILE" "$INSTANCE_TYPE" "$INSTANCE_ID"; then
-                        echo "   ✅ Database entry updated with new instance"
+                local S3_STATUS
+                S3_STATUS=$(check_sim_status_from_s3 "$SIM_FILE")
+                update_sim_status "$INSTANCE_ID" "$S3_STATUS"
+                update_instance_status "$INSTANCE_ID" "terminated"
+                ;;
+            11)
+                # Spot interrupted - simulation was interrupted, may restart
+                : $((INTERRUPTED++))
+                update_sim_status "$INSTANCE_ID" "interrupted"
+                update_instance_status "$INSTANCE_ID" "terminated"
+                if [ "$AUTO_RESTART" = true ] && is_simulation_restartable "$SIM_FILE"; then
+                    echo "🔄 Restarting interrupted simulation: $SIM_FILE"
+                    if $LAUNCH_SCRIPT --key-path "$KEY_PATH" --replace-instance-id "$INSTANCE_ID" --instance-type "$INSTANCE_TYPE" "$SIM_FILE"; then
+                        echo "   ✅ Restarted successfully"
                     else
-                        echo "⚠️  Restart failed, marking as terminated"
-                        update_instance_status "$INSTANCE_ID" "terminated"
+                        echo "   ⚠️  Restart failed"
                     fi
-                else
-                    update_instance_status "$INSTANCE_ID" "terminated"
                 fi
                 ;;
-            *)
-                : $((UNKNOWN++))
-                ;;
         esac
-    done < <(get_instances)
+    done < <(get_instances active)
 
     echo "========================================"
-    echo "SUMMARY"
+    echo "SUMMARY - $(date '+%Y-%m-%d %H:%M:%S')"
     echo "========================================"
-    echo "Total instances: $TOTAL"
+    echo "Total active instances: $TOTAL"
     echo "Running simulations: $RUNNING"
     echo "Completed: $COMPLETED"
-    echo "Errors: $ERRORS"
-    echo "Unknown status: $UNKNOWN"
-    echo "Not running/inaccessible: $NOT_RUNNING"
+    echo "Failed (FDS errors): $ERRORS"
+    echo "Interrupted (spot): $INTERRUPTED"
+    echo "Not running/other: $NOT_RUNNING"
     echo "========================================"
-
-    # Return status based on state:
-    # 0 = still running (keep watching)
-    # 1 = all completed successfully
-    # 2 = all crashed/errored
-    # 3 = mixed results (some completed, some crashed)
-    # 4 = no instances to monitor
-    if [ "$TOTAL" -eq 0 ]; then
-        return 4
-    fi
-
-    if [ "$RUNNING" -gt 0 ]; then
-        return 0
-    fi
-
-    # All simulations stopped, check if we have definitive results
-    local STUCK=$((UNKNOWN + NOT_RUNNING))
-
-    # If nothing is running and we have stuck instances, stop watching
-    # to avoid infinite loop
-    if [ "$STUCK" -gt 0 ]; then
-        echo ""
-        echo "⚠️  Warning: ${STUCK} instance(s) in unknown/inaccessible state with no running simulations"
-        # Return mixed results status since we can't determine final state
-        return 3
-    fi
-
-    # All accounted for with definitive results
-    if [ "$COMPLETED" -eq "$TOTAL" ]; then
-        return 1
-    elif [ "$ERRORS" -eq "$TOTAL" ]; then
-        return 2
-    else
-        return 3
-    fi
 }
 
 # --- MAIN ---
@@ -493,65 +488,15 @@ function main() {
     if [ "$WATCH_MODE" = true ]; then
         while true; do
             check_all_instances
-            local EXIT_CODE=$?
-
-            case $EXIT_CODE in
-                0)
-                    # Still running, keep watching
-                    echo ""
-                    echo "Next check in ${CHECK_INTERVAL} seconds..."
-                    sleep "$CHECK_INTERVAL"
-                    echo ""
-                    ;;
-                1)
-                    echo ""
-                    echo "✅ All simulations completed successfully. Exiting."
-                    exit 0
-                    ;;
-                2)
-                    echo ""
-                    echo "❌ All simulations crashed or errored. Exiting."
-                    exit 2
-                    ;;
-                3)
-                    echo ""
-                    echo "⚠️  Mixed results: some completed, some crashed. Exiting."
-                    exit 3
-                    ;;
-                4)
-                    echo ""
-                    echo "No instances to monitor. Exiting."
-                    exit 0
-                    ;;
-            esac
+            echo ""
+            echo "Next check in ${CHECK_INTERVAL} seconds... (Ctrl+C to stop)"
+            sleep "$CHECK_INTERVAL"
+            echo ""
         done
     else
         check_all_instances
-        local EXIT_CODE=$?
-
-        case $EXIT_CODE in
-            0)
-                # Still running
-                exit 0
-                ;;
-            1)
-                # All completed
-                exit 0
-                ;;
-            2)
-                # All errors
-                exit 2
-                ;;
-            3)
-                # Mixed results
-                exit 3
-                ;;
-            4)
-                # No instances
-                exit 0
-                ;;
-        esac
     fi
 }
+
 
 main "$@"

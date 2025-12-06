@@ -2,6 +2,13 @@
 
 # Shared utility functions for FDS simulation scripts
 
+# --- UTILITIES ---
+
+function get_chid() {
+    local SIM_FILE=$1
+    basename "${SIM_FILE%.fds}"
+}
+
 # --- LOGGING ---
 
 function log() {
@@ -46,13 +53,15 @@ CREATE TABLE IF NOT EXISTS instances (
     sim_file TEXT NOT NULL,
     region TEXT NOT NULL,
     instance_type TEXT NOT NULL,
-    status TEXT DEFAULT 'active' CHECK(status IN ('pending', 'active', 'completed', 'failed', 'terminated')),
+    status TEXT DEFAULT 'active' CHECK(status IN ('pending', 'active', 'terminated')),
+    sim_status TEXT DEFAULT NULL CHECK(sim_status IS NULL OR sim_status IN ('running', 'completed', 'failed', 'interrupted')),
     created_at INTEGER DEFAULT (strftime('%s', 'now')),
     updated_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_sim_file ON instances(sim_file);
 CREATE INDEX IF NOT EXISTS idx_status ON instances(status);
+CREATE INDEX IF NOT EXISTS idx_sim_status ON instances(sim_status);
 
 -- Trigger to auto-update updated_at on UPDATE
 CREATE TRIGGER IF NOT EXISTS update_timestamp
@@ -86,14 +95,16 @@ function update_instance() {
     local NEW_INSTANCE_ID=$2
     local NEW_IP=$3
     local NEW_REGION=$4
-    local STATUS=${5:-active}
+    local STATUS=$5
+    local INSTANCE_TYPE=$6
 
     sqlite3 "$DB_FILE" <<EOF
 UPDATE instances
 SET instance_id = '$NEW_INSTANCE_ID',
     ip = '$NEW_IP',
     region = '$NEW_REGION',
-    status = '$STATUS'
+    status = '$STATUS',
+    instance_type = '$INSTANCE_TYPE'
 WHERE instance_id = '$OLD_INSTANCE_ID';
 EOF
 }
@@ -109,13 +120,28 @@ WHERE instance_id = '$INSTANCE_ID';
 EOF
 }
 
+function update_sim_status() {
+    local INSTANCE_ID=$1
+    local SIM_STATUS=$2
+
+    sqlite3 "$DB_FILE" <<EOF
+UPDATE instances
+SET sim_status = '$SIM_STATUS'
+WHERE instance_id = '$INSTANCE_ID';
+EOF
+}
+
 function delete_instance() {
     local INSTANCE_ID=$1
     sqlite3 "$DB_FILE" "DELETE FROM instances WHERE instance_id = '$INSTANCE_ID';"
 }
 
 function get_instances() {
-    sqlite3 "$DB_FILE" "SELECT ip, instance_id, sim_file, region, instance_type FROM instances WHERE status = 'active';"
+    local STATUSES=("${@:-active}")
+    local IFS=','
+    local SQL_IN="${STATUSES[*]}"
+    SQL_IN="${SQL_IN//,/','}"
+    sqlite3 "$DB_FILE" "SELECT ip, instance_id, sim_file, region, instance_type FROM instances WHERE status IN ('$SQL_IN');"
 }
 
 # --- Region Functions ---

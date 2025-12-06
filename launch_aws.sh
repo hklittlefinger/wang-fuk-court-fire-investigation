@@ -11,17 +11,21 @@ source "${SCRIPT_DIR}/common.sh"
 # --- COMMAND-LINE ARGUMENTS ---
 KEY_PATH=""
 KEY_NAME=""              # Derived from KEY_PATH basename in validate_arguments()
-INSTANCE_TYPE="c7i.12xlarge"
+INSTANCE_TYPE="c7i.4xlarge"
+VOLUME_SIZE=100          # Root volume size in GB
 USER_REGION=""           # If specified, all files launch in this region
 REPLACE_INSTANCE_ID=""   # If set, update this instance ID instead of adding new entry
+CLEAN_S3=false           # If true, delete existing S3 output before launching
 declare -a FDS_FILES=()
 
 # --- CONSTANTS ---
-CLOUD_INIT_FILE="fds-cloud-init.yaml"
 S3_BUCKET_REGION="us-east-1" # S3 bucket region (us-east-1 for global accessibility)
 S3_BUCKET="fds-output-wang-fuk-fire"
 IAM_ROLE_NAME="fds-s3-access-role"
 INSTANCE_PROFILE_NAME="fds-s3-access-profile"
+# Custom FDS AMI - FDS 6.10.1 with HYPRE v2.32.0, Sundials v6.7.0
+FDS_AMI_NAME="fds-6.10.1-hypre-sundials-*"
+FDS_AMI_REGION="eu-north-1"
 
 # --- CLEANUP ---
 
@@ -138,6 +142,40 @@ function setup_route_table() {
     echo "$RT_ID"
 }
 
+function setup_s3_endpoint() {
+    local REGION=$1
+    local VPC_ID=$2
+    local RT_ID=$3
+
+    # Check if S3 endpoint already exists for this VPC
+    local ENDPOINT_ID
+    ENDPOINT_ID=$(aws ec2 describe-vpc-endpoints \
+        --region "$REGION" \
+        --filters "Name=vpc-id,Values=$VPC_ID" \
+                  "Name=service-name,Values=com.amazonaws.${REGION}.s3" \
+        --query "VpcEndpoints[0].VpcEndpointId" \
+        --output text 2>/dev/null) || true
+
+    if [ -z "$ENDPOINT_ID" ] || [ "$ENDPOINT_ID" == "None" ]; then
+        log "Creating S3 Gateway endpoint in $REGION"
+        ENDPOINT_ID=$(aws ec2 create-vpc-endpoint \
+            --vpc-id "$VPC_ID" \
+            --service-name "com.amazonaws.${REGION}.s3" \
+            --route-table-ids "$RT_ID" \
+            --region "$REGION" \
+            --query 'VpcEndpoint.VpcEndpointId' \
+            --output text) || {
+            log_warning "Failed to create S3 endpoint (non-fatal)"
+            return 0
+        }
+        log "Created S3 Gateway endpoint: $ENDPOINT_ID"
+    else
+        log "S3 Gateway endpoint already exists: $ENDPOINT_ID"
+    fi
+
+    echo "$ENDPOINT_ID"
+}
+
 function create_subnet() {
     local AZ=$1
     local CIDR_OCTET=$2
@@ -203,6 +241,15 @@ function setup_security_group() {
     local REGION=$1
     local VPC_ID=$2
     local SG_ID
+
+    # Get current public IP
+    local MY_IP
+    MY_IP=$(curl -s --retry 3 --retry-delay 1 --max-time 5 https://checkip.amazonaws.com)
+    if [ -z "$MY_IP" ]; then
+        log_error "Failed to detect current IP address after retries"
+        return 1
+    fi
+
     SG_ID=$(aws ec2 describe-security-groups --region "$REGION" --filters "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=fds-sg" --query "SecurityGroups[*].GroupId" --output text) || {
         log_error "Failed to query security groups"
         return 1
@@ -214,18 +261,24 @@ function setup_security_group() {
             return 1
         }
 
-        # Get current public IP
-        local MY_IP
-        MY_IP=$(curl -s --retry 3 --retry-delay 1 --max-time 5 https://checkip.amazonaws.com)
-        if [ -z "$MY_IP" ]; then
-            log_error "Failed to detect current IP address after retries"
-            return 1
-        fi
-
         aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 22 --cidr "$MY_IP/32" --region "$REGION" > /dev/null || {
             log_error "Failed to authorize security group ingress"
             return 1
         }
+    else
+        # Check if current IP is allowed, update if different
+        local ALLOWED_IP
+        ALLOWED_IP=$(aws ec2 describe-security-groups --region "$REGION" --group-ids "$SG_ID" --query "SecurityGroups[0].IpPermissions[0].IpRanges[0].CidrIp" --output text)
+        if [ "$ALLOWED_IP" != "$MY_IP/32" ]; then
+            log "Updating security group SSH access from $ALLOWED_IP to $MY_IP/32"
+            if [ -n "$ALLOWED_IP" ] && [ "$ALLOWED_IP" != "None" ]; then
+                aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 22 --cidr "$ALLOWED_IP" --region "$REGION" > /dev/null 2>&1 || true
+            fi
+            aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 22 --cidr "$MY_IP/32" --region "$REGION" > /dev/null || {
+                log_error "Failed to authorize security group ingress"
+                return 1
+            }
+        fi
     fi
 
     echo "$SG_ID"
@@ -253,7 +306,7 @@ function setup_key_pair() {
 
 function setup_s3_bucket() {
     log "Checking/Creating S3 bucket: $S3_BUCKET"
-    if ! aws s3 ls "s3://${S3_BUCKET}" --region "$S3_BUCKET_REGION" 2> /dev/null; then
+    if ! aws s3api head-bucket --bucket "$S3_BUCKET" --region "$S3_BUCKET_REGION" >/dev/null 2>&1; then
         log "Creating S3 bucket: $S3_BUCKET"
         aws s3api create-bucket --bucket "$S3_BUCKET" --region "$S3_BUCKET_REGION"
         log "S3 bucket created: $S3_BUCKET"
@@ -324,20 +377,35 @@ function setup_iam_role() {
 
 function find_ami() {
     local REGION=$1
-    local ami
-    ami=$(aws ec2 describe-images \
+    local AMI_ID
+    AMI_ID=$(aws ec2 describe-images \
         --region "$REGION" \
-        --owners 099720109477 \
-        --filters "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" \
+        --owners self \
+        --filters "Name=name,Values=$FDS_AMI_NAME" \
         --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
-        --output text 2>&1)
+        --output text 2>/dev/null)
 
-    if [ -z "$ami" ] || [ "$ami" == "None" ]; then
-        log_error "Could not find Ubuntu 24.04 AMI in $REGION"
+    if [ -z "$AMI_ID" ] || [ "$AMI_ID" == "None" ]; then
         return 1
     fi
 
-    echo "$ami"
+    echo "$AMI_ID"
+}
+
+function copy_ami() {
+    local SOURCE_AMI_ID=$1
+    local SOURCE_REGION=$2
+    local DEST_REGION=$3
+    local AMI_ID
+    AMI_ID=$(aws ec2 copy-image \
+        --source-region "$SOURCE_REGION" \
+        --source-image-id "$SOURCE_AMI_ID" \
+        --region "$DEST_REGION" \
+        --name "${FDS_AMI_NAME%\*}$(date +%Y%m%d)" \
+        --query 'ImageId' \
+        --output text) || return 1
+    aws ec2 wait image-available --region "$DEST_REGION" --image-ids "$AMI_ID" || return 1
+    echo "$AMI_ID"
 }
 
 # --- INSTANCE FUNCTIONS ---
@@ -358,8 +426,8 @@ function try_launch_in_subnet() {
         --subnet-id "$SUBNET" \
         --security-group-ids "$SG_ID" \
         --iam-instance-profile "Name=$INSTANCE_PROFILE_NAME" \
-        --user-data "file://${SCRIPT_DIR}/${CLOUD_INIT_FILE}" \
         --instance-market-options '{"MarketType":"spot","SpotOptions":{"SpotInstanceType":"one-time"}}' \
+        --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"VolumeSize\":${VOLUME_SIZE},\"VolumeType\":\"gp3\",\"DeleteOnTermination\":true}}]" \
         --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=fds-${SIM_FILE%.fds}}]" \
         --query 'Instances[*].InstanceId' \
         --output text
@@ -410,7 +478,7 @@ function launch_instance() {
 
     # Insert into database with 'pending' status immediately
     if [ -n "$REPLACE_INSTANCE_ID" ]; then
-        update_instance "$REPLACE_INSTANCE_ID" "$INSTANCE_ID" "$PUBLIC_IP" "$REGION" "pending"
+        update_instance "$REPLACE_INSTANCE_ID" "$INSTANCE_ID" "$PUBLIC_IP" "$REGION" "pending" "$INSTANCE_TYPE"
     else
         add_instance "$PUBLIC_IP" "$INSTANCE_ID" "$SIM_FILE" "$REGION" "$INSTANCE_TYPE"
     fi
@@ -589,52 +657,64 @@ function get_instance_vcpus() {
 
 # --- SIMULATION FUNCTIONS ---
 
-function upload_file() {
-    local SIM_FILE=$1
-    local PUBLIC_IP=$2
-
-    log "Uploading $SIM_FILE to $PUBLIC_IP"
-    if ! scp -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i "$KEY_PATH" "$SIM_FILE" "ubuntu@$PUBLIC_IP:/home/ubuntu/"; then
-        log_error "Failed to upload $SIM_FILE"
-        return 1
-    fi
-    log "Successfully uploaded $SIM_FILE"
-}
-
 function start_simulation() {
     local SIM_FILE=$1
     local PUBLIC_IP=$2
     local REMOTE_FILE
     REMOTE_FILE=$(basename "$SIM_FILE")
     local CHID
-    CHID=$(basename "$SIM_FILE" .fds)
+    CHID=$(get_chid "$SIM_FILE")
+    local WORK_DIR="/home/ubuntu/fds-work/$CHID"
 
     # Count number of meshes in FDS file (one MPI process per mesh)
     local NUM_MESHES
     NUM_MESHES=$(grep -c "^&MESH" "$SIM_FILE" || echo "1")
 
     log "Creating working directory for $CHID"
-    # Create CHID subdirectory in working directory
-    if ! ssh_exec "$PUBLIC_IP" "mkdir -p /home/ubuntu/fds-work/$CHID"; then
+    if ! ssh_exec "$PUBLIC_IP" "mkdir -p $WORK_DIR"; then
         log_error "Failed to create working directory"
         return 1
     fi
 
-    # Check for existing restart files in S3 and download if present
-    log "Checking for restart files in S3 for $CHID"
-    if ssh_exec "$PUBLIC_IP" "ls /mnt/fds-output/$CHID/*.restart 2>/dev/null" > /dev/null 2>&1; then
-        log "Found restart files, downloading for restart"
-        if ! ssh_exec "$PUBLIC_IP" "rsync -av /mnt/fds-output/$CHID/ /home/ubuntu/fds-work/$CHID/"; then
-            log_warning "Failed to download restart files, starting fresh"
+    # Upload FDS file directly to working directory
+    log "Uploading $SIM_FILE to $PUBLIC_IP:$WORK_DIR/"
+    if ! scp -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i "$KEY_PATH" "$SIM_FILE" "ubuntu@$PUBLIC_IP:$WORK_DIR/"; then
+        log_error "Failed to upload $SIM_FILE"
+        return 1
+    fi
+
+    # Clean S3 output directory if --clean flag is set
+    if [ "$CLEAN_S3" = true ]; then
+        log "Cleaning existing S3 output for $CHID (--clean flag set)"
+        if aws s3 rm "s3://${S3_BUCKET}/${CHID}/" --recursive 2>/dev/null; then
+            log "S3 output cleaned successfully"
         else
-            log "Restart files downloaded successfully"
+            log "No existing S3 output to clean or cleanup failed"
         fi
     else
-        log "No restart files found, starting fresh"
+        # Check for existing restart files in S3 and download if present
+        log "Checking for restart files in S3 for $CHID"
+        local RESTART_COUNT
+        RESTART_COUNT=$(aws s3 ls "s3://${S3_BUCKET}/${CHID}/" 2>/dev/null | grep -c '\.restart' || true)
+        if [ "$RESTART_COUNT" -gt 0 ]; then
+            log "Found $RESTART_COUNT restart files, downloading for restart"
+            if ! ssh_exec "$PUBLIC_IP" "aws s3 sync s3://${S3_BUCKET}/${CHID}/ $WORK_DIR/"; then
+                log_warning "Failed to download files, starting fresh"
+            else
+                log "Files downloaded successfully"
+                # Enable restart mode in FDS file by adding RESTART=.TRUE. to &MISC line
+                log "Enabling RESTART=.TRUE. in FDS file for restart"
+                if ! ssh_exec "$PUBLIC_IP" "sed -i 's/^\&MISC /\&MISC RESTART=.TRUE., /' $WORK_DIR/$REMOTE_FILE"; then
+                    log_warning "Failed to enable restart mode in FDS file"
+                fi
+            fi
+        else
+            log "No restart files found, starting fresh"
+        fi
     fi
 
     log "Starting simulation in tmux ($NUM_MESHES MPI processes)"
-    if ! ssh_exec "$PUBLIC_IP" "tmux new-session -d -s fds_run 'tmux set-option -t fds_run remain-on-exit on && source \$HOME/FDS/FDS6/bin/FDS6VARS.sh && cd /home/ubuntu/fds-work/$CHID && mpiexec -n ${NUM_MESHES} fds \$HOME/$REMOTE_FILE'"; then
+    if ! ssh_exec "$PUBLIC_IP" "tmux new-session -d -s fds_run 'source /opt/intel/oneapi/setvars.sh && cd $WORK_DIR && mpiexec -n ${NUM_MESHES} /opt/fds/bin/fds $REMOTE_FILE'"; then
         log_error "Failed to start simulation"
         return 1
     fi
@@ -703,8 +783,24 @@ function parse_arguments() {
                 INSTANCE_TYPE="$2"
                 shift 2
                 ;;
+            --volume-size)
+                VOLUME_SIZE="$2"
+                shift 2
+                ;;
             --replace-instance-id)
                 REPLACE_INSTANCE_ID="$2"
+                shift 2
+                ;;
+            --clean)
+                CLEAN_S3=true
+                shift
+                ;;
+            --ami-name)
+                FDS_AMI_NAME="$2"
+                shift 2
+                ;;
+            --ami-region)
+                FDS_AMI_REGION="$2"
                 shift 2
                 ;;
             *)
@@ -738,11 +834,6 @@ function validate_arguments() {
         return 1
     fi
 
-    if [ ! -f "${SCRIPT_DIR}/${CLOUD_INIT_FILE}" ]; then
-        log_error "Cloud-init file not found: ${SCRIPT_DIR}/${CLOUD_INIT_FILE}"
-        return 1
-    fi
-
     for FDS_FILE in "${FDS_FILES[@]}"; do
         if [ ! -f "$FDS_FILE" ]; then
             log_error "FDS file not found: $FDS_FILE"
@@ -760,9 +851,15 @@ function print_usage() {
     echo "Optional arguments:"
     echo "  --region REGION        AWS region (auto-detected if not specified)"
     echo "  --instance-type TYPE   EC2 instance type (default: c7i.12xlarge)"
+    echo "  --volume-size SIZE     Root volume size in GB (default: 100)"
+    echo "  --ami-name NAME        AMI name pattern (default: fds-6.10.1-hypre-sundials-*)"
+    echo "  --ami-region REGION    Source AMI region (default: eu-north-1)"
+    echo "  --clean                Delete existing S3 output before launching (start fresh)"
     echo ""
     echo "Example:"
     echo "  $0 --key-path ~/.ssh/fds-key-pair tier1_1.fds tier1_2.fds"
+    echo "  $0 --key-path ~/.ssh/fds-key-pair --volume-size 200 tier1_1.fds  # Larger disk"
+    echo "  $0 --key-path ~/.ssh/fds-key-pair --clean tier1_1.fds  # Fresh start"
 }
 
 # --- INSTANCE SETUP WORKFLOW ---
@@ -774,8 +871,6 @@ function run_instance_setup() {
     local PUBLIC_IP=$2
 
     wait_for_ssh "$PUBLIC_IP" || return 1
-    wait_for_cloud_init "$PUBLIC_IP" || return 1
-    upload_file "$SIM_FILE" "$PUBLIC_IP" || return 1
     start_simulation "$SIM_FILE" "$PUBLIC_IP" || return 1
 }
 
@@ -845,11 +940,20 @@ function process_files() {
             fi
         fi
 
-        # Auto-detect AMI for this region
+        # Get AMI for this region, copy from source region if not found
         if ! AMI_ID=$(find_ami "$REGION"); then
-            log_error "Failed to find AMI in $REGION"
-            : $((FAIL_COUNT++))
-            continue
+            local SOURCE_AMI_ID
+            if ! SOURCE_AMI_ID=$(find_ami "$FDS_AMI_REGION"); then
+                log_error "Failed to find source AMI in $FDS_AMI_REGION"
+                : $((FAIL_COUNT++))
+                continue
+            fi
+            log "FDS AMI not found in $REGION, copying from $FDS_AMI_REGION..."
+            if ! AMI_ID=$(copy_ami "$SOURCE_AMI_ID" "$FDS_AMI_REGION" "$REGION"); then
+                log_error "Failed to copy AMI to $REGION"
+                : $((FAIL_COUNT++))
+                continue
+            fi
         fi
         log "Using AMI: $AMI_ID"
 
@@ -902,6 +1006,10 @@ function process_files() {
             continue
         fi
         log "Using Route Table: $RT_ID"
+
+        # Setup S3 Gateway endpoint for faster S3 access
+        log "Checking/Creating S3 Gateway endpoint in $REGION"
+        setup_s3_endpoint "$REGION" "$VPC_ID" "$RT_ID" > /dev/null
 
         # Setup subnets
         local SUBNET_IDS
