@@ -6,14 +6,9 @@
 
 ```
 evidence/
-├── news/                 # 新聞報導同媒體報導
-│   ├── sources.md        # 來源主列表連同存檔連結
-│   └── YYYY-MM-DD_source/ # 個別文章連同元數據
+├── news/                 # 新聞報導
+├── social-media/         # 社交媒體、相片及影片
 ├── firsthand/            # 第一手陳述
-│   ├── submissions/      # 已匿名化提交
-│   └── verified/         # 已核實陳述
-├── media/                # 相片同影片
-│   └── README.md         # 提交指引
 └── official/             # 政府及官方文件
 ```
 
@@ -60,14 +55,46 @@ curl -s "https://web.archive.org/save/[URL]"
 - [任何相片/影片/文件列表]
 ```
 
-### 媒體 (`media/`)
+### 社交媒體 (`social-media/`)
 
-事件、建築物或相關材料嘅相片及影片。
+Twitter/X、Facebook、Instagram、Threads 等平台嘅帖文。
+
+**目錄結構**：
+```
+social-media/
+└── 2025-11-26-twitter-username-fire-video/
+    ├── metadata.yaml      # 元數據
+    ├── screenshot.png     # 截圖備份
+    ├── video.mp4          # 媒體檔案（如適用）
+    └── archive.html       # archive.today 存檔
+```
+
+**存檔社交媒體**：
+```bash
+# 使用 archive.today（比 archive.org 更適合 JS 渲染內容）
+# 瀏覽：https://archive.today/?run=1&url=[URL]
+
+# 下載影片
+yt-dlp [URL]
+```
+
+**metadata.yaml 格式**：
+```yaml
+title: 帖文標題或描述
+platform: twitter  # twitter/facebook/instagram/threads/etc.
+author: "@username"
+url: https://...
+archive_url: https://archive.today/...
+post_date: 2025-11-26
+capture_date: 2025-11-27
+content_type: video  # video/image/text/thread
+```
 
 **要求**：
-- 提交前移除所有元數據（見 ANONYMOUS-CONTRIBUTIONS.md）
-- 提供背景資料（日期、時間、地點、內容描述）
-- 註明來源（個人、新聞媒體、社交媒體）
+- 優先使用 archive.today 存檔（處理動態內容更可靠）
+- 截圖作為備份（以防存檔失敗）
+- 使用 yt-dlp 下載影片/圖片
+- 記錄擷取時嘅互動數據（可選）
 
 **儲存**：大型檔案應使用 Git LFS 或外部託管（首選 IPFS）
 
@@ -187,14 +214,9 @@ This directory contains documented evidence related to the Wang Fuk Court fire.
 
 ```
 evidence/
-├── news/                 # News reports and media coverage
-│   ├── sources.md        # Master list of sources with archive links
-│   └── YYYY-MM-DD_source/ # Individual articles with metadata
+├── news/                 # News reports
+├── social-media/         # Social media, photos and videos
 ├── firsthand/            # First-person accounts
-│   ├── submissions/      # Anonymized submissions
-│   └── verified/         # Verified accounts
-├── media/                # Photos and videos
-│   └── README.md         # Submission guidelines
 └── official/             # Government and official documents
 ```
 
@@ -241,14 +263,46 @@ Verified: [yes/no/pending]
 - [list of any photos/videos/documents]
 ```
 
-### Media (`media/`)
+### Social Media (`social-media/`)
 
-Photos and videos of the incident, building, or relevant materials.
+Posts from Twitter/X, Facebook, Instagram, Threads, and other platforms.
+
+**Directory Structure**:
+```
+social-media/
+└── 2025-11-26-twitter-username-fire-video/
+    ├── metadata.yaml      # Metadata
+    ├── screenshot.png     # Screenshot backup
+    ├── video.mp4          # Media file (if applicable)
+    └── archive.html       # archive.today archive
+```
+
+**Archiving Social Media**:
+```bash
+# Use archive.today (better for JS-rendered content than archive.org)
+# Visit: https://archive.today/?run=1&url=[URL]
+
+# Download videos
+yt-dlp [URL]
+```
+
+**metadata.yaml Format**:
+```yaml
+title: Post title or description
+platform: twitter  # twitter/facebook/instagram/threads/etc.
+author: "@username"
+url: https://...
+archive_url: https://archive.today/...
+post_date: 2025-11-26
+capture_date: 2025-11-27
+content_type: video  # video/image/text/thread
+```
 
 **Requirements**:
-- Strip all metadata before submission (see ANONYMOUS-CONTRIBUTIONS.md)
-- Provide context (date, time, location, what it shows)
-- Note source (personal, news outlet, social media)
+- Prefer archive.today for archiving (more reliable for dynamic content)
+- Take screenshots as backup (in case archive fails)
+- Use yt-dlp to download videos/images
+- Record engagement metrics at capture time (optional)
 
 **Storage**: Large files should use Git LFS or external hosting (IPFS preferred)
 

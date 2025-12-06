@@ -6,6 +6,17 @@ This directory contains fire dynamics simulations using the Fire Dynamics Simula
 
 ---
 
+## 目錄結構 / Directory Structure
+
+```
+simulation/
+├── *.fds              # FDS 輸入檔案 / FDS input files
+├── data/              # 模擬輸出數據 / Simulation output data
+└── scripts/           # AWS 啟動及監控腳本 / AWS launch and monitoring scripts
+```
+
+---
+
 ## 模擬狀態 / Simulation Status
 
 **目前階段：模型驗證**

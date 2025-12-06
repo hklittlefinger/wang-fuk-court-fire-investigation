@@ -43,20 +43,9 @@
 
 ```
 ├── evidence/              # 證據收集
-│   ├── news/              # 新聞報導及媒體報導
-│   ├── firsthand/         # 目擊者陳述及倖存者口述
-│   ├── media/             # 相片及影片
-│   └── official/          # 政府文件
 ├── analysis/              # 技術分析
-│   ├── methodology.md     # 調查框架（參考NIST/格蘭菲爾塔）
-│   ├── building/          # 建築物分析
-│   └── regulatory/        # 法規合規審查
 ├── simulation/            # FDS火災動力學模擬
-│   ├── README.md          # 模擬技術文檔
-│   ├── *.fds              # FDS輸入檔案
-│   └── scripts/           # AWS啟動及監控腳本
 ├── reports/               # 調查報告
-│   └── interim/           # 臨時報告
 └── resources/             # 工具及參考資料
 ```
 
@@ -157,20 +146,9 @@ We are an independent team using publicly available evidence and scientific meth
 
 ```
 ├── evidence/              # Evidence collection
-│   ├── news/              # News reports and media coverage
-│   ├── firsthand/         # Witness statements and survivor accounts
-│   ├── media/             # Photos and videos
-│   └── official/          # Government documents
 ├── analysis/              # Technical analysis
-│   ├── methodology.md     # Investigation framework (NIST/Grenfell-inspired)
-│   ├── building/          # Building analysis
-│   └── regulatory/        # Regulatory compliance review
 ├── simulation/            # FDS fire dynamics simulation
-│   ├── README.md          # Simulation technical documentation
-│   ├── *.fds              # FDS input files
-│   └── scripts/           # AWS launch and monitoring scripts
 ├── reports/               # Investigation reports
-│   └── interim/           # Interim reports
 └── resources/             # Tools and references
 ```
 
