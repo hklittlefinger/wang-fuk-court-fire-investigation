@@ -36,23 +36,41 @@ This study models **only the scaffold facade** (10m × 5.6m × 90m) to isolate s
 
 ## 模擬矩陣 / Simulation Matrix
 
-### 第一層：關鍵驗證（5個模擬）/ TIER 1: Critical Validation (5 simulations)
+### 變數 / Variables
 
-| # | 檔案 / File | 棚架 / Scaffolding | 安全網 / Safety Net | 發泡膠 / Styrofoam | 目的 / Purpose |
-|---|-------------|---------------------|---------------------|---------------------|----------------|
-| 1 | tier1_1_bamboo_PP_styro.fds | 竹 / Bamboo | PP（不合規）| 有 / Yes | **實際事件 / ACTUAL incident** |
-| 2 | tier1_2_steel_PP_styro.fds | **鋼 / Steel** | PP（不合規）| 有 / Yes | 隔離竹嘅影響 / Isolate bamboo |
-| 3 | tier1_3_bamboo_FR_styro.fds | 竹 / Bamboo | **FR-HDPE（合規）** | 有 / Yes | 隔離網嘅影響 / Isolate netting |
-| 4 | tier1_4_steel_FR_styro.fds | **鋼 / Steel** | **FR-HDPE（合規）** | 有 / Yes | 完全合規連發泡膠 / Full compliance with styrofoam |
-| 5 | tier1_5_bamboo_FR_no_styro.fds | 竹 / Bamboo | **FR-HDPE（合規）** | **無 / No** | FR網下發泡膠影響 / Styrofoam effect with FR net |
+| 變數 / Variable | 選項 / Options | 數量 / Count |
+|-----------------|----------------|--------------|
+| 棚架 / Scaffolding | 竹 bamboo, 鋼 steel | 2 |
+| 安全網 / Safety Net | PP（不合規）, FR（阻燃合規）, HDPE（廉價）, none（無）| 4 |
+| 發泡膠 / Styrofoam | styro（有）, no_styro（無）| 2 |
 
-### 第二層：延伸分析（3個模擬）/ TIER 2: Extended Analysis (3 simulations)
+**總排列數 / Total permutations**: 2 × 4 × 2 = **16 simulations**
 
-| # | 檔案 / File | 棚架 / Scaffolding | 安全網 / Safety Net | 發泡膠 / Styrofoam | 目的 / Purpose |
-|---|-------------|---------------------|---------------------|---------------------|----------------|
-| 6 | tier2_1_bamboo_none_styro.fds | 竹 / Bamboo | **無 / None** | 有 / Yes | 網嘅總體影響 / Total net effect |
-| 7 | tier2_2_bamboo_HDPE_styro.fds | 竹 / Bamboo | **HDPE（廉價）** | 有 / Yes | PP vs HDPE |
-| 8 | tier2_3_steel_FR_nostyro.fds | 鋼 / Steel | FR-HDPE | **無 / No** | 完全合規下發泡膠影響 / Styrofoam effect with full compliance |
+### 優先級1：隔離實際事件因素（4個模擬）/ Priority 1: Isolate Real Incident Factors (4 simulations)
+
+| 檔案 / File | 棚架 / Scaffolding | 安全網 / Safety Net | 發泡膠 / Styrofoam | 目的 / Purpose |
+|-------------|---------------------|---------------------|---------------------|----------------|
+| **bamboo_PP_styro.fds** | 竹 / Bamboo | PP（不合規）| 有 / Yes | **基線：實際事件 / BASELINE: Actual incident** |
+| steel_PP_styro.fds | **鋼 / Steel** | PP（不合規）| 有 / Yes | 隔離竹嘅影響 / Isolate bamboo effect |
+| bamboo_FR_styro.fds | 竹 / Bamboo | **FR（合規）** | 有 / Yes | 隔離網嘅影響 / Isolate net effect |
+| bamboo_PP_no_styro.fds | 竹 / Bamboo | PP（不合規）| **無 / No** | 隔離發泡膠影響 / Isolate styrofoam effect |
+
+### 優先級2：延伸場景（12個模擬）/ Priority 2: Extended Scenarios (12 simulations)
+
+| 檔案 / File | 棚架 / Scaffolding | 安全網 / Safety Net | 發泡膠 / Styrofoam | 目的 / Purpose |
+|-------------|---------------------|---------------------|---------------------|----------------|
+| bamboo_FR_no_styro.fds | 竹 / Bamboo | FR（合規）| 無 / No | 合規網無發泡膠 / Compliant net without styro |
+| bamboo_HDPE_styro.fds | 竹 / Bamboo | HDPE（廉價）| 有 / Yes | 廉價網 vs PP / Cheap net vs PP |
+| bamboo_HDPE_no_styro.fds | 竹 / Bamboo | HDPE（廉價）| 無 / No | 廉價網無發泡膠 / Cheap net without styro |
+| bamboo_none_styro.fds | 竹 / Bamboo | 無 / None | 有 / Yes | 網嘅總體影響 / Total net effect |
+| bamboo_none_no_styro.fds | 竹 / Bamboo | 無 / None | 無 / No | 純竹棚 / Pure bamboo scaffold |
+| steel_FR_styro.fds | 鋼 / Steel | FR（合規）| 有 / Yes | 完全合規 / Full compliance |
+| steel_FR_no_styro.fds | 鋼 / Steel | FR（合規）| 無 / No | 完全合規無發泡膠 / Full compliance without styro |
+| steel_PP_no_styro.fds | 鋼 / Steel | PP（不合規）| 無 / No | 鋼棚不合規網 / Steel with non-compliant net |
+| steel_HDPE_styro.fds | 鋼 / Steel | HDPE（廉價）| 有 / Yes | 鋼棚廉價網 / Steel with cheap net |
+| steel_HDPE_no_styro.fds | 鋼 / Steel | HDPE（廉價）| 無 / No | 鋼棚廉價網無發泡膠 / Steel cheap net no styro |
+| steel_none_styro.fds | 鋼 / Steel | 無 / None | 有 / Yes | 純鋼棚 / Pure steel scaffold |
+| steel_none_no_styro.fds | 鋼 / Steel | 無 / None | 無 / No | 最低燃料負荷 / Minimal fuel load |
 
 ---
 
@@ -113,14 +131,17 @@ AMI喺多個區域可用 / AMI available in multiple regions：eu-north-1, eu-so
 ```bash
 cd simulation
 
-# 基本啟動 / Basic launch
-./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair tier1_*.fds tier2_*.fds
+# 優先級1模擬 / Priority 1 simulations (isolate real incident factors)
+./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair bamboo_PP_styro.fds steel_PP_styro.fds bamboo_FR_styro.fds bamboo_PP_no_styro.fds
+
+# 全部16個模擬 / All 16 simulations
+./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair *.fds
 
 # 全新開始（刪除現有S3輸出）/ Fresh start (delete existing S3 output)
-./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair --clean tier1_1.fds
+./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair --clean bamboo_PP_styro.fds
 
 # 大型模擬用更大硬碟 / Larger disk for big simulations
-./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair --volume-size 200 tier1_1.fds
+./scripts/launch_aws.sh --key-path ~/.ssh/fds-key-pair --volume-size 200 bamboo_PP_styro.fds
 ```
 
 腳本會 / The script will：
@@ -213,9 +234,17 @@ grep "Time Step" ~/fds-work/<CHID>/<CHID>.out | tail -5
 
 ### 比較方法 / Comparison Method
 ```python
-bamboo_contribution = (Sim1_HRR - Sim2_HRR) / Sim1_HRR * 100
-netting_compliance = (Sim1_time - Sim3_time)  # 額外疏散時間 / Extra evacuation time
-styrofoam_effect = (Sim3_HRR - Sim5_HRR) / Sim3_HRR * 100
+# 隔離各材料貢獻 / Isolate material contributions
+baseline = bamboo_PP_styro  # 實際事件 / Actual incident
+
+# 竹貢獻 / Bamboo contribution
+bamboo_effect = (baseline.HRR - steel_PP_styro.HRR) / baseline.HRR * 100
+
+# 安全網貢獻 / Safety net contribution
+net_effect = (baseline.HRR - bamboo_FR_styro.HRR) / baseline.HRR * 100
+
+# 發泡膠貢獻 / Styrofoam contribution
+styrofoam_effect = (baseline.HRR - bamboo_PP_no_styro.HRR) / baseline.HRR * 100
 ```
 
 ---
