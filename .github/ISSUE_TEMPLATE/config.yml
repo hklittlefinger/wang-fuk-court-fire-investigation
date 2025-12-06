@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: 問題 / Questions
-    url: https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/discussions/categories/q-a
+    url: https://github.com/hklittlefinger/wang-fuk-court-fire-investigation/discussions/categories/q-a
     about: 關於項目、模擬或火災分析嘅問題 / Ask questions about the project, simulation, or fire analysis
   - name: 證據線索 / Evidence Tips
-    url: https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/discussions/categories/evidence
+    url: https://github.com/hklittlefinger/wang-fuk-court-fire-investigation/discussions/categories/evidence
     about: 分享關於潛在證據來源或線索嘅提示 / Share tips about potential evidence sources or leads
   - name: 安全顧慮 / Security Concerns
-    url: https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/blob/main/ANONYMOUS-CONTRIBUTIONS.md
+    url: https://github.com/hklittlefinger/wang-fuk-court-fire-investigation/blob/main/ANONYMOUS-CONTRIBUTIONS.md
     about: 喺提交敏感資訊前閱讀我哋嘅匿名貢獻指南 / Read our guide on contributing anonymously before submitting sensitive information

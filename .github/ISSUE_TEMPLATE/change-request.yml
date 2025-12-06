@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        使用呢個模板請求變更。如有問題或討論，請使用 [GitHub Discussions](https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/discussions)。
-        Use this template to request changes. For questions or discussion, please use [GitHub Discussions](https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/discussions).
+        使用呢個模板請求變更。如有問題或討論，請使用 [GitHub Discussions](https://github.com/hklittlefinger/wang-fuk-court-fire-investigation/discussions)。
+        Use this template to request changes. For questions or discussion, please use [GitHub Discussions](https://github.com/hklittlefinger/wang-fuk-court-fire-investigation/discussions).
 
   - type: dropdown
     id: type
