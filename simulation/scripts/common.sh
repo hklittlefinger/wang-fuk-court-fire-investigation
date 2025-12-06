@@ -146,6 +146,20 @@ function get_instances() {
 
 # --- Region Functions ---
 
+# Blacklisted regions - these will be excluded from region selection
+# ap-east-1 (Hong Kong): Excluded due to the subject matter of this investigation
+BLACKLISTED_REGIONS=("ap-east-1")
+
+function is_region_blacklisted() {
+    local region=$1
+    for blacklisted in "${BLACKLISTED_REGIONS[@]}"; do
+        if [ "$region" == "$blacklisted" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 function get_region_prices() {
     local INSTANCE_TYPE=$1
 
@@ -157,6 +171,11 @@ function get_region_prices() {
     local -a REGION_PRICES=()
 
     for region in $REGIONS; do
+        # Skip blacklisted regions
+        if is_region_blacklisted "$region"; then
+            log "Skipping blacklisted region: $region"
+            continue
+        fi
         local PRICE
         PRICE=$(aws ec2 describe-spot-price-history \
             --instance-types "$INSTANCE_TYPE" \
