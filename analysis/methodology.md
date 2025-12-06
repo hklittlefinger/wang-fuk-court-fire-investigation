@@ -61,9 +61,9 @@
 
 **目標**：建立經核實嘅事件時間線。
 
-| 時間 | 事件 | 來源 | 可信度 |
-|------|------|------|--------|
-| HH:MM | 事件描述 | [來源] | 高/中/低 |
+| 日期 | 時間 | 事件 | 來源 | 可信度 |
+|------|------|------|------|--------|
+| YYYY-MM-DD | HH:MM | 事件描述 | [來源] | 高/中/低 |
 
 **時間線元素**：
 - 起火及發現
@@ -271,9 +271,9 @@ Reports: [Grenfell Tower Inquiry](https://www.grenfelltowerinquiry.org.uk/)
 
 **Objective**: Establish a verified timeline of events.
 
-| Time | Event | Source | Confidence |
-|------|-------|--------|------------|
-| HH:MM | Event description | [source] | High/Medium/Low |
+| Date | Time | Event | Source | Confidence |
+|------|------|-------|--------|------------|
+| YYYY-MM-DD | HH:MM | Event description | [source] | High/Medium/Low |
 
 **Timeline elements**:
 - Fire ignition and discovery
