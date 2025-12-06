@@ -36,7 +36,7 @@ function log_warning() {
 
 # --- SQLite Database Functions ---
 
-DB_FILE="${DB_FILE:-instances.db}"
+DB_FILE="${DB_FILE:-${SCRIPT_DIR}/../data/instances.db}"
 
 function check_instances_db() {
     if [ ! -f "$DB_FILE" ]; then
