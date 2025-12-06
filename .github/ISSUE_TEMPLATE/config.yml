@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions
+    url: https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/discussions/categories/q-a
+    about: Ask questions about the project, simulation, or fire analysis
+  - name: Evidence Tips
+    url: https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/discussions/categories/evidence
+    about: Share tips about potential evidence sources or leads
+  - name: Security Concerns
+    url: https://github.com/hklittlefinger/hongkong-taipo-fire-fds-sim/blob/main/ANONYMOUS-CONTRIBUTIONS.md
+    about: Read our guide on contributing anonymously before submitting sensitive information
