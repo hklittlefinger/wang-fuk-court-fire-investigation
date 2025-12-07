@@ -27,3 +27,5 @@
 - [ ] 已遮蔽私人人士嘅面部（如適用）/ Faces of private individuals redacted (if applicable)
 - [ ] 已盡可能提供來源 / Sources provided where possible
 - [ ] 已核實資訊準確性 / Information accuracy verified
+- [ ] 如有 100MB 至 2GB 嘅檔案，已安裝並設定好 [Git LFS](https://git-lfs.com/) / If sharing files between 100MB and 2GB, [Git LFS](https://git-lfs.com/) is installed and set up correctly
+- [ ] 如有大過 2GB 嘅檔案，已上載到公開只讀嘅儲存空間並提供連結 / If sharing files larger than 2GB, uploaded to public readonly storage and link provided

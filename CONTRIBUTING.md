@@ -30,9 +30,18 @@
 
 ### 標準貢獻（GitHub）
 
-1. Fork呢個儲存庫
-2. 將你嘅貢獻加到適當嘅目錄
-3. 提交pull request並描述你所添加嘅內容
+1. 安裝 [Git LFS](https://git-lfs.com/)（見下面嘅說明）
+2. Fork呢個儲存庫
+3. 將你嘅貢獻加到適當嘅目錄
+4. 提交pull request並描述你所添加嘅內容
+
+#### Git LFS
+
+Git LFS（Large File Storage）係 Git 嘅擴展，用嚟處理大型檔案。由於 GitHub 對檔案大細有限制，我哋用 Git LFS 嚟儲存大型影片檔案（例如 `.webm`）。
+
+**請喺 clone 之前安裝 Git LFS。** 如果冇安裝就 clone，大型檔案會變成細小嘅指標檔案（pointer files），影片將無法播放。如果已經 clone 咗，可以安裝 Git LFS 之後運行 `git lfs pull` 嚟下載實際檔案。
+
+如果檔案大過 2GB，請將檔案上載到公開只讀嘅儲存空間（例如 S3 bucket），然後喺 PR 中提供連結。
 
 ### 匿名貢獻
 
@@ -59,6 +68,37 @@
 - 註明日期、時間、地點（如已知）
 - 註明來源（新聞媒體、個人、官方）
 - 使用archive.org或archive.today存檔網頁連結
+- 如果網頁大過 100MB，請使用 `wget` 遞歸下載所有資源成獨立檔案，而唔係用 monolith 打包成單一檔案
+
+#### 網頁存檔工具
+
+**Monolith**（適合 < 100MB 嘅網頁）- 將網頁打包成單一 HTML 檔案：
+```bash
+monolith https://example.com/article -o article.html
+
+# 如果需要登入，使用 cookies：
+monolith -c cookies.txt https://example.com/article -o article.html
+```
+
+**wget**（適合 > 100MB 嘅網頁）- 遞歸下載所有資源成獨立檔案：
+```bash
+wget --mirror --convert-links --adjust-extension --page-requisites --no-parent https://example.com/article/
+
+# 如果需要登入，使用 cookies：
+wget --load-cookies cookies.txt --mirror --convert-links --adjust-extension --page-requisites --no-parent https://example.com/article/
+```
+
+你可以用瀏覽器擴展（例如 "Get cookies.txt"）匯出 cookies.txt 檔案。
+
+**yt-dlp** - 下載社交媒體同影片網站嘅影片：
+```bash
+yt-dlp https://www.youtube.com/watch?v=VIDEO_ID
+
+# 如果需要登入，使用 cookies：
+yt-dlp --cookies cookies.txt https://www.youtube.com/watch?v=VIDEO_ID
+```
+
+yt-dlp 支援大部分影片平台，包括 YouTube、Facebook、Twitter/X、Instagram 等。
 
 ### 相片/影片
 
@@ -125,9 +165,18 @@ This project documents the Wang Fuk Court fire tragedy (November 26, 2025) to pr
 
 ### Standard Contribution (GitHub)
 
-1. Fork this repository
-2. Add your contribution to the appropriate directory
-3. Submit a pull request with description of what you're adding
+1. Install [Git LFS](https://git-lfs.com/) (see note below)
+2. Fork this repository
+3. Add your contribution to the appropriate directory
+4. Submit a pull request with description of what you're adding
+
+#### Git LFS
+
+Git LFS (Large File Storage) is an extension for Git that handles large files. Since GitHub has file size limits, we use Git LFS to store large video files (e.g., `.webm`).
+
+**Please install Git LFS before cloning.** If you clone without it, large files will be replaced with small pointer files and videos won't play. If you've already cloned, install Git LFS and run `git lfs pull` to download the actual files.
+
+For files larger than 2GB, please upload them to public readonly storage (e.g., S3 bucket) and provide the link in your PR.
 
 ### Anonymous Contribution
 
@@ -154,6 +203,37 @@ Quick options:
 - Include date, time, location if known
 - Note the source (news outlet, personal, official)
 - Archive web links using archive.org or archive.today
+- For web pages larger than 100MB, use `wget` to recursively download all resources as individual files instead of using monolith to bundle into a single file
+
+#### Web Archiving Tools
+
+**Monolith** (for pages < 100MB) - bundles a web page into a single HTML file:
+```bash
+monolith https://example.com/article -o article.html
+
+# If login is required, use cookies:
+monolith -c cookies.txt https://example.com/article -o article.html
+```
+
+**wget** (for pages > 100MB) - recursively downloads all resources as individual files:
+```bash
+wget --mirror --convert-links --adjust-extension --page-requisites --no-parent https://example.com/article/
+
+# If login is required, use cookies:
+wget --load-cookies cookies.txt --mirror --convert-links --adjust-extension --page-requisites --no-parent https://example.com/article/
+```
+
+You can export a cookies.txt file using browser extensions (e.g., "Get cookies.txt").
+
+**yt-dlp** - downloads videos from social media and video platforms:
+```bash
+yt-dlp https://www.youtube.com/watch?v=VIDEO_ID
+
+# If login is required, use cookies:
+yt-dlp --cookies cookies.txt https://www.youtube.com/watch?v=VIDEO_ID
+```
+
+yt-dlp supports most video platforms including YouTube, Facebook, Twitter/X, Instagram, etc.
 
 ### For Photos/Videos
 
