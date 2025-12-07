@@ -1,0 +1,28 @@
+title: 宏福苑業主立案法團網站存檔 / Wang Fuk Court Owners' Corporation Website Archive
+source: wangfuk.org
+url: http://www.wangfuk.org/
+capture_date: 2025-12-07
+capture_method: wget --mirror --recursive
+description: |
+  宏福苑業主立案法團官方網站，包含2024-2026年外牆維修工程相關文件。
+  Official website of Wang Fuk Court Owners' Corporation containing documents
+  related to the 2024-2026 external wall renovation project.
+content_summary:
+  total_files: 359
+  pdf_documents: 319
+  html_pages: 7
+  other_files: 33
+key_documents:
+  - 工程解說會簡報(宏業及鴻毅).pdf - Contractor/consultant project briefing
+  - 宏福苑工程預算總表R3.2.pdf - Project budget and schedule
+  - 各座工程進度表_20250830.pdf - Progress schedule by block
+  - 竹棚運送安排 - Bamboo scaffolding delivery notices
+  - 外牆勘測報告 - External wall survey reports
+  - 維修工程問卷 - Renovation questionnaires by block
+contractor: 宏業建築工程有限公司 / Wang Yip Construction Engineering Co. Ltd.
+consultant: 鴻毅建築師有限公司
+project_period: 2024-07-16 to 2026-03-03
+relevance: |
+  Primary source documentation of the renovation project underway at the time
+  of the November 26, 2025 fire. Contains scaffolding arrangements, work
+  schedules, contractor communications, and project specifications.
