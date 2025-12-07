@@ -8,6 +8,17 @@
   — 瓦里斯大人
 </p>
 
+> **📢 徵集證據**
+>
+> 我哋正積極收集以下證據用於火災模擬驗證：
+>
+> - **帶時間戳嘅影片/相片** — 顯示火勢發展嘅多角度片段（如有需要請保留 EXIF 元數據）
+> - **火災前相片** — 棚架、安全網、發泡膠窗罩嘅配置
+> - **目擊者陳述** — 你見到乜嘢？幾點？喺邊度？
+> - **火警系統證據** — 火警鐘有冇響？幾時響？
+>
+> 如果你有任何相關資料，請參閱 [CONTRIBUTING.md](CONTRIBUTING.md) 或 [匿名提交指引](ANONYMOUS-CONTRIBUTIONS.md)。
+
 ## 調查狀態
 
 | 階段 | 描述 | 狀態 |
@@ -110,6 +121,17 @@
   <br>
   — Lord Varys
 </p>
+
+> **📢 Call for Evidence**
+>
+> We are actively collecting evidence for fire simulation validation:
+>
+> - **Timestamped videos/photos** — footage showing fire progression from multiple angles (preserve EXIF metadata if possible and necessary)
+> - **Pre-fire photos** — scaffolding, safety nets, styrofoam window covers configuration
+> - **Witness statements** — what did you see? when? where?
+> - **Fire alarm evidence** — did the fire alarm sound? when?
+>
+> If you have any relevant information, see [CONTRIBUTING.md](CONTRIBUTING.md) or [anonymous submission guide](ANONYMOUS-CONTRIBUTIONS.md).
 
 ## Investigation Status
 
