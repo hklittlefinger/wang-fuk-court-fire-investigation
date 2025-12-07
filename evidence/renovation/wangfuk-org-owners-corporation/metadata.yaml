@@ -1,28 +1,45 @@
-title: 宏福苑業主立案法團網站存檔 / Wang Fuk Court Owners' Corporation Website Archive
-source: wangfuk.org
+title: 宏福苑業主立案法團網站存檔
+title_en: Wang Fuk Court Owners' Corporation Website Archive
+source: 宏福苑業主立案法團 / Wang Fuk Court Owners' Corporation
 url: http://www.wangfuk.org/
+archive_url: null  # TODO: Submit to archive.today
+language: zh
+post_date: null  # Website, no single publication date
 capture_date: 2025-12-07
-capture_method: wget --mirror --recursive
+type: website-archive
+archive_status: complete
+
 description: |
-  宏福苑業主立案法團官方網站，包含2024-2026年外牆維修工程相關文件。
-  Official website of Wang Fuk Court Owners' Corporation containing documents
-  related to the 2024-2026 external wall renovation project.
-content_summary:
-  total_files: 359
-  pdf_documents: 319
-  html_pages: 7
-  other_files: 33
-key_documents:
-  - 工程解說會簡報(宏業及鴻毅).pdf - Contractor/consultant project briefing
-  - 宏福苑工程預算總表R3.2.pdf - Project budget and schedule
-  - 各座工程進度表_20250830.pdf - Progress schedule by block
-  - 竹棚運送安排 - Bamboo scaffolding delivery notices
-  - 外牆勘測報告 - External wall survey reports
-  - 維修工程問卷 - Renovation questionnaires by block
-contractor: 宏業建築工程有限公司 / Wang Yip Construction Engineering Co. Ltd.
-consultant: 鴻毅建築師有限公司
-project_period: 2024-07-16 to 2026-03-03
-relevance: |
-  Primary source documentation of the renovation project underway at the time
-  of the November 26, 2025 fire. Contains scaffolding arrangements, work
-  schedules, contractor communications, and project specifications.
+  Complete archive of the Wang Fuk Court Owners' Corporation website,
+  including meeting minutes from the 12th term (2021-2025) documenting
+  the renovation project decisions.
+
+description_zh: |
+  宏福苑業主立案法團網站完整存檔，包括第十二屆（2021-2025）會議記錄，
+  記載裝修工程決議。
+
+key_facts:
+  - 18 PDF documents from 12th term meetings (2021-2025)
+  - Meeting minutes documenting renovation project decisions
+  - Contractor notices and project progress reports
+  - Website active at time of fire (November 2025)
+
+tags:
+  - owners-corporation
+  - meeting-minutes
+  - renovation
+  - primary-source
+
+files:
+  - path: www.wangfuk.org/html/meeting/12/
+    description: 12th term meeting records (2021-2025)
+    file_count: 18
+  - path: www.wangfuk.org/html/board/
+    description: Management committee information
+  - path: www.wangfuk.org/html/home/
+    description: Homepage and announcements
+  - path: www.wangfuk.org/html/incorp/
+    description: Incorporation documents
+
+checksum_file: www.wangfuk.org.sha256
+total_files: 311
