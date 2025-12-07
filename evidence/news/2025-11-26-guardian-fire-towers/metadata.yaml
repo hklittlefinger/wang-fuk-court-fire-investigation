@@ -1,12 +1,18 @@
-title: "Death toll in Hong Kong tower block fire rises to 44 with hundreds still missing"
-platform: news
-author: "Helen Davidson"
-url: "https://www.theguardian.com/world/2025/nov/26/hong-kong-fire-tai-po-towers"
-archive_url: "https://archive.today/2025.11.26-guardian-fire-towers"
-post_date: "2025-11-26"
-capture_date: "2025-12-07"
-content_type: article
-summary: "Initial report from The Guardian on the Wang Fuk Court fire, reporting 44 deaths and hundreds missing. Mentions the fire started in Wang Cheong House and spread via scaffolding."
+title: Death toll in Hong Kong tower block fire rises to 44 with hundreds still missing
+source: The Guardian
+author: Helen Davidson
+url: https://www.theguardian.com/world/2025/nov/26/hong-kong-fire-tai-po-towers
+archive_url: https://archive.today/2025.11.26-guardian-fire-towers
+language: en
+post_date: 2025-11-26
+capture_date: 2025-12-07
+type: news-article
+archive_status: pending
+
+description: |
+  Initial report from The Guardian on the Wang Fuk Court fire, reporting 44 deaths
+  and hundreds missing. Mentions the fire started in Wang Cheong House and spread via scaffolding.
+
 key_facts:
   - "Fire at Wang Fuk Court, Tai Po"
   - "At least 44 dead, hundreds missing (initial figures)"

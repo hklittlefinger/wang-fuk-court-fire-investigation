@@ -1,14 +1,18 @@
-title: "Door bell camera shows resident activated fire alarm but it was off/malfunctioned"
+title: Door bell camera shows resident activated fire alarm but it was off/malfunctioned
 platform: x
 author: "@the852spirit"
 url: https://x.com/the852spirit/status/1995462750286352605
-archive_url: # TODO: submit to archive.today
+archive_url: null  # TODO: submit to archive.today
+language: en
 post_date: 2025-12-01
 capture_date: 2025-12-07
-content_type: video
+type: video
+archive_status: pending
+
 description: |
   2000: #Breaking on the day of #TaipoFire, at 15:24, a door bell camera from Wang Kin Ct flat
   shows a resident activated the building fire alarm, but it was off/malfunctioned and didn't ring.
+
 tags:
   - fire-alarm
   - malfunction

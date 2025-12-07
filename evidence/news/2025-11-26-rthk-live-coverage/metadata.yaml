@@ -1,18 +1,14 @@
 title: RTHK Live Coverage - Tai Po Fire
-title_zh: 香港電台即時報導 - 大埔火災
 url: https://news.rthk.hk/rthk/en/component/k2/1833370-20251126.htm
 source: RTHK (Radio Television Hong Kong)
 language: en
 post_date: 2025-11-26
-date_archived: 2025-12-06
+capture_date: 2025-12-06
 type: news-broadcast
 
 description: |
   Public broadcaster's live coverage of the fire incident with real-time
   updates throughout the day.
-
-description_zh: |
-  公共廣播機構即時報導火災事件，全日即時更新。
 
 key_facts:
   - Public broadcaster coverage
