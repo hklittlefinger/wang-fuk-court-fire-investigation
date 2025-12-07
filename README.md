@@ -223,3 +223,5 @@ If you have safety or privacy concerns, see [ANONYMOUS-CONTRIBUTIONS.md](ANONYMO
 ---
 
 *This project is not affiliated with any government, political organization, or commercial entity. It is an independent effort to document and analyze a significant fire safety incident. The goal is truth and prevention, not blame.*
+
+<a href="https://github.com/hklittlefinger/wang-fuk-court-fire-investigation">Wang Fuk Court Fire Independent Investigation</a> © 2025 by <a href="https://github.com/hklittlefinger">hklittlefinger</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
