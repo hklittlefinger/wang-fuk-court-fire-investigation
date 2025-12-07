@@ -1,0 +1,57 @@
+title: 宏福苑樓宇樣本平面圖 / Wang Fuk Court Typical Floor Plans
+source: 香港房屋委員會 / Hong Kong Housing Authority
+url: https://www.housingauthority.gov.hk/en/global-elements/estate-locator/standard-block-typical-floor-plans/
+capture_date: 2025-12-07
+files:
+  - filename: wangfukcourt_bA.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bA.pdf
+    block: A
+    name_zh: 宏仁閣
+    name_en: Wang Yan House
+    fire_status: affected
+  - filename: wangfukcourt_bB.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bB.pdf
+    block: B
+    name_zh: 宏道閣
+    name_en: Wang Tao House
+    fire_status: affected
+  - filename: wangfukcourt_bC.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bC.pdf
+    block: C
+    name_zh: 宏新閣
+    name_en: Wang Sun House
+    fire_status: affected
+  - filename: wangfukcourt_bD.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bD.pdf
+    block: D
+    name_zh: 宏建閣
+    name_en: Wang Kin House
+    fire_status: affected
+  - filename: wangfukcourt_bE.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bE.pdf
+    block: E
+    name_zh: 宏泰閣
+    name_en: Wang Tai House
+    fire_status: affected
+  - filename: wangfukcourt_bF.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bF.pdf
+    block: F
+    name_zh: 宏昌閣
+    name_en: Wang Cheong House
+    fire_status: fire_origin
+  - filename: wangfukcourt_bG.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bG.pdf
+    block: G
+    name_zh: 宏盛閣
+    name_en: Wang Shing House
+    fire_status: affected
+  - filename: wangfukcourt_bH.pdf
+    url: https://www.housingauthority.gov.hk/hdw/content/static/file/b5/residential/plans/wangfukcourt_bH.pdf
+    block: H
+    name_zh: 宏志閣
+    name_en: Wang Chi House
+    fire_status: not_affected
+description: |
+  Official typical floor plans for all 8 blocks of Wang Fuk Court, a Home Ownership
+  Scheme (HOS) estate in Tai Po, Hong Kong. The estate was built in 1983 using the
+  Flexi 2 block design. Each block has 31 floors with 8 units per floor.
