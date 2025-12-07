@@ -9,7 +9,8 @@ evidence/
 ├── news/                 # 新聞報導
 ├── social-media/         # 社交媒體、相片及影片
 ├── firsthand/            # 第一手陳述
-└── official/             # 政府及官方文件
+├── official/             # 政府及官方文件
+└── renovation/           # 裝修工程文件
 ```
 
 ## 證據類別
@@ -108,6 +109,16 @@ content_type: video  # video/image/text/thread
 - 消防處聲明
 - 立法會討論
 
+### 裝修工程文件 (`renovation/`)
+
+裝修工程相關嘅主要來源文件。
+
+- 業主立案法團網站存檔
+- 承建商通告
+- 工程進度報告
+- 棚架安排文件
+- 工程問卷及簡報
+
 ## 證據處理原則
 
 ### 保管鏈
@@ -154,6 +165,78 @@ sha256sum filename > filename.sha256
 ### 透過安全渠道
 
 見 [ANONYMOUS-CONTRIBUTIONS.md](../ANONYMOUS-CONTRIBUTIONS.md) 了解安全提交方法。
+
+## 存檔工具
+
+### 本地存檔（儲存喺呢個 repo）
+
+**[Monolith](https://github.com/Y2Z/monolith)** - 將網頁保存為單一 HTML 檔案，包含所有資源（圖片、CSS、JS）：
+
+```bash
+# 安裝
+# macOS
+brew install monolith
+
+# Linux (Debian/Ubuntu)
+sudo apt install monolith
+# 或者用 Cargo
+cargo install monolith
+
+# Windows (用 Scoop)
+scoop install monolith
+
+# 基本用法
+monolith https://example.com/article -o archive.html
+
+# 包含影片/音訊
+monolith -v https://example.com/article -o archive.html
+
+# 隔離模式（移除外部連結）
+monolith -I https://example.com/article -o archive.html
+```
+
+**[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - 下載影片（支援 YouTube、Twitter、Facebook 等）：
+
+```bash
+# 安裝
+# macOS
+brew install yt-dlp
+
+# Linux (Debian/Ubuntu)
+sudo apt install yt-dlp
+# 或者用 pip
+pip install yt-dlp
+
+# Windows (用 Scoop)
+scoop install yt-dlp
+
+# 下載影片
+yt-dlp [URL]
+
+# 下載最佳畫質
+yt-dlp -f "best" [URL]
+```
+
+### 外部存檔（第三方時間戳備份）
+
+除咗本地存檔，請順手提交到外部存檔服務。呢啲服務提供獨立嘅時間戳驗證，證明內容喺某個時間存在過。
+
+**[archive.today](https://archive.today)**（推薦，處理動態內容更可靠）：
+1. 打開 https://archive.today
+2. 貼上網址，撳「Save」
+3. 複製存檔網址到 metadata.yaml 嘅 `archive_url` 欄位
+
+**[Wayback Machine](https://web.archive.org)**：
+1. 打開 https://web.archive.org
+2. 貼上網址，撳「Save Page」
+3. 等待完成，複製存檔網址
+
+### 存檔最佳做法
+
+1. **雙重備份**：本地存檔（monolith）+ 外部存檔（archive.today）
+2. **記錄網址**：喺 metadata.yaml 記錄原始網址同存檔網址
+3. **即刻存檔**：內容可能隨時消失，發現即存檔
+4. **驗證存檔**：確保存檔完整可讀
 
 ## 證據需求清單
 
@@ -217,7 +300,8 @@ evidence/
 ├── news/                 # News reports
 ├── social-media/         # Social media, photos and videos
 ├── firsthand/            # First-person accounts
-└── official/             # Government and official documents
+├── official/             # Government and official documents
+└── renovation/           # Renovation project documents
 ```
 
 ## Evidence Categories
@@ -316,6 +400,16 @@ Government statements, investigation reports, regulations, permits.
 - Fire Services Department statements
 - Legislative Council discussions
 
+### Renovation Documents (`renovation/`)
+
+Primary source documents related to the renovation project.
+
+- Owners' Corporation website archives
+- Contractor notices
+- Project progress reports
+- Scaffolding arrangement documents
+- Project questionnaires and briefings
+
 ## Evidence Handling Principles
 
 ### Chain of Custody
@@ -362,6 +456,78 @@ sha256sum filename > filename.sha256
 ### Via Secure Channels
 
 See [ANONYMOUS-CONTRIBUTIONS.md](../ANONYMOUS-CONTRIBUTIONS.md) for secure submission methods.
+
+## Archiving Tools
+
+### Local Archiving (stored in this repo)
+
+**[Monolith](https://github.com/Y2Z/monolith)** - Save web pages as single HTML files with all resources (images, CSS, JS) embedded:
+
+```bash
+# Install
+# macOS
+brew install monolith
+
+# Linux (Debian/Ubuntu)
+sudo apt install monolith
+# Or via Cargo
+cargo install monolith
+
+# Windows (via Scoop)
+scoop install monolith
+
+# Basic usage
+monolith https://example.com/article -o archive.html
+
+# Include video/audio
+monolith -v https://example.com/article -o archive.html
+
+# Isolation mode (remove external links)
+monolith -I https://example.com/article -o archive.html
+```
+
+**[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - Download videos (supports YouTube, Twitter, Facebook, etc.):
+
+```bash
+# Install
+# macOS
+brew install yt-dlp
+
+# Linux (Debian/Ubuntu)
+sudo apt install yt-dlp
+# Or via pip
+pip install yt-dlp
+
+# Windows (via Scoop)
+scoop install yt-dlp
+
+# Download video
+yt-dlp [URL]
+
+# Download best quality
+yt-dlp -f "best" [URL]
+```
+
+### External Archiving (third-party timestamped backup)
+
+In addition to local archiving, please also submit to external archive services. These provide independent timestamped verification that content existed at a certain time.
+
+**[archive.today](https://archive.today)** (recommended, more reliable for dynamic content):
+1. Go to https://archive.today
+2. Paste the URL and click "Save"
+3. Copy the archive URL to the `archive_url` field in metadata.yaml
+
+**[Wayback Machine](https://web.archive.org)**:
+1. Go to https://web.archive.org
+2. Paste the URL and click "Save Page"
+3. Wait for completion, copy the archive URL
+
+### Best Practices
+
+1. **Dual backup**: Local archive (monolith) + external archive (archive.today)
+2. **Record URLs**: Store original and archive URLs in metadata.yaml
+3. **Archive immediately**: Content may disappear at any time
+4. **Verify archives**: Ensure archives are complete and readable
 
 ## Evidence Wishlist
 
