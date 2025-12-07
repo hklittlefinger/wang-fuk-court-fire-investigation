@@ -1,142 +1,47 @@
-# 事件時間線 / Event Timeline
+# Verified Timeline of Wang Fuk Court Fire / 宏福苑火災經核實時間線
 
-本文件記錄宏福苑火災嘅經核實事件時間線。
+**Date / 日期:** 2025-11-26
+**Location / 地點:** Wang Fuk Court, Tai Po, Hong Kong / 香港大埔宏福苑
 
-This document records the verified timeline of events for the Wang Fuk Court fire.
+| Time (HKT) / 時間 | Event / 事件 | Source(s) / 來源 | Confidence / 可信度 |
+| :--- | :--- | :--- | :--- |
+| **14:00** | G座（宏盛閣）居民目擊F座（宏昌閣）冒煙/起火。<br>Earliest signs of smoke/fire reported by a resident in Block G (Wang Shing House) looking at Block F (Wang Cheong House). | Wikipedia (citing BBC) | Medium / 中 |
+| **14:45** | 目擊者指宏昌閣外牆竹棚起火。<br>Eyewitness reports of bamboo scaffolding on Wang Cheong House catching fire. | Wikipedia (citing BBC) | High / 高 |
+| **14:51** | **消防處接獲首宗火警報告。**<br>**Fire Department receives first report of fire.** | HK01 (2025-11-26 timeline), Wikipedia | **High / 極高** |
+| **15:01** | 消防員抵達現場（接報後約10分鐘）。<br>Firefighters arrive at the scene (approx. 10 mins after call). | Wikipedia | High / 高 |
+| **15:02** | 火警升為**三級**。<br>Fire alarm upgraded to **No. 3 Alarm**. | HK01 (2025-11-26 timeline), Wikipedia | **High / 極高** |
+| **15:24** | 閉路電視顯示宏健閣走廊有男子敲打無聲響嘅火警鐘。<br>CCTV footage shows a man striking a silent fire alarm in Wang Kin House corridor. | Dimsum Daily (Video Evidence) | **High / 極高** |
+| **15:34** | 火警升為**四級**。<br>Fire alarm upgraded to **No. 4 Alarm**. | HK01 (2025-11-26 timeline), Wikipedia | **High / 極高** |
+| **~16:00** | 火勢經棚架及發泡膠封窗產生「煙囪效應」迅速蔓延至鄰近大廈。<br>Fire spreads rapidly via "chimney effect" through scaffolding and polystyrene window sealing to adjacent towers. | Ming Pao, Reuters, The Guardian | High / 高 |
+| **18:22** | 火警升為**五級**（最高級別）。八座大廈中七座受波及。<br>Fire alarm upgraded to **No. 5 Alarm** (highest level). Seven of eight towers affected. | HK01 (2025-11-26 timeline), Wikipedia | **High / 極高** |
+| **19:00** | 確認4死7傷。<br>4 confirmed dead, 7 injured. | HK01 | High / 高 |
+| **23:00** | 確認13死30傷。<br>13 confirmed dead, 30 injured. | HK01 | High / 高 |
+| **23:15** | 宏昌閣（F座）火勢死灰復燃。<br>Fire reignites in Wang Cheong House (Block F). | HK01 | High / 高 |
+| **2025-11-27** | | | |
+| **01:50** | 火勢大致受控；三座大廈明火被救熄。<br>Fire largely under control; open flames extinguished on 3 buildings. | HK01 | High / 高 |
+| **05:45** | 死亡人數增至最少44人。警方以誤殺罪拘捕3名承建商人員。<br>Death toll rises to at least 44. Police arrest 3 contractor staff for manslaughter. | HK01, The Guardian | **High / 極高** |
+| **14:58** | 死亡人數增至55人。<br>Death toll rises to 55. | HK01 | High / 高 |
+| **2025-11-28** | | | |
+| **01:20** | 滅火工作大致完成；救援隊伍破門進入單位。<br>Firefighting largely completed; rescue teams break into units. | HK01 | High / 高 |
+| **06:00** | 死亡人數增至94人，76人受傷。<br>Death toll rises to 94 dead, 76 injured. | HK01 | High / 高 |
+| **10:18** | **火警正式救熄。** 歷時43小時27分鐘。<br>**Fire officially extinguished.** Duration: 43 hours 27 minutes. | HK01, Wikipedia | **High / 極高** |
+| **15:00** | 死亡人數增至128人。<br>Death toll rises to 128. | HK01, AP | High / 高 |
+| **2025-12-03** | **最終確認人數：159死**，79傷，31失蹤。<br>**Final confirmed toll: 159 dead**, 79 injured, 31 missing. | HKFP, AP, HK01 | **High / 極高** |
 
----
+## 關鍵成因（已核實） / Key Contributing Factors (Verified)
 
-## 火災當日 / Day of Fire: 2025-11-26 (星期三 / Wednesday)
+1.  **棚架與安全網 / Scaffolding & Netting:** 竹棚及其包裹嘅安全網提供咗垂直燃料負荷，助長火勢迅速蔓延。<br>Bamboo scaffolding wrapped in safety netting provided a vertical fuel load and contributed to the rapid spread. (The Guardian 2025-11-26, Ming Pao 2025-11-28, HKFP 2025-12-03)
+2.  **發泡膠 / Polystyrene (Styrofoam):** 用於封窗嘅發泡膠板成為主要助燃劑。<br>Expanded polystyrene foam used to seal windows acted as a major accelerant for the fire. (Ming Pao 2025-11-28, Reuters 2025-11-29, HKFP 2025-12-03)
+3.  **煙囪效應 / Chimney Effect:** 棚架/安全網與大廈外牆之間嘅空隙形成通道，促進強烈向上對流及火勢快速增長。<br>The gap between the scaffolding/netting and the building facade created a channel, promoting strong upward convection and rapid fire growth. (Ming Pao 2025-11-28, The Guardian 2025-11-26)
+4.  **火警鐘失效 / Fire Alarm Failure:** 大廈火警鐘系統雖運作正常但未能發出聲響，阻礙早期疏散。<br>Fire alarms in the buildings were functional but failed to sound during the emergency, hindering early evacuation. (Dimsum Daily 2025-12-01, Ming Pao 2025-11-28, HK01 2025-11-26 timeline)
 
-### 火災前狀況 / Pre-Fire Conditions
+## Source Reference Key / 來源參考
 
-| 項目 / Item | 詳情 / Details | 來源 / Source |
-|-------------|----------------|---------------|
-| 天氣警告 / Weather Warning | 紅色火災危險警告自星期一生效 / Red fire danger warning active since Monday | SCMP |
-| 裝修狀況 / Renovation Status | 外牆裝修工程進行中超過一年 / Exterior renovation ongoing for over 1 year | TIME |
-| 棚架 / Scaffolding | 竹棚架包圍全部8座大廈 / Bamboo scaffolding around all 8 buildings | Multiple |
-| 安全網 / Safety Nets | 綠色安全網覆蓋棚架 / Green safety netting covering scaffolding | Multiple |
-| 發泡膠板 / Styrofoam | 窗戶貼上發泡膠板 / Styrofoam boards sealed to windows | PBS, TIME |
-
----
-
-### 詳細時間線 / Detailed Timeline
-
-| 時間 / Time (HKT) | 事件 / Event | 地點 / Location | 來源 / Source | 可信度 / Confidence |
-|-------------------|--------------|-----------------|---------------|---------------------|
-| 14:51 | 起火 / Fire ignites | 宏祥樓 / Wang Cheong House | SCMP | 高 / High |
-| 14:52 | 消防處接報 / Fire Services receives report | - | SCMP | 高 / High |
-| ~15:00 | 升級至二級火警 / Upgraded to No. 2 alarm | - | [需核實] | 中 / Medium |
-| 15:02 | 升級至三級火警 / Upgraded to No. 3 alarm | - | SCMP | 高 / High |
-| 15:30 | 一名消防員與同事失去聯絡 / Firefighter loses contact with colleagues | - | SCMP | 高 / High |
-| 15:34 | 升級至四級火警 / Upgraded to No. 4 alarm | - | SCMP | 高 / High |
-| 16:01 | 失聯消防員被發現，面部燒傷 / Missing firefighter found with facial burns | - | SCMP | 高 / High |
-| 16:45 | 消防員證實殉職（37歲，沙田消防局）/ Firefighter pronounced dead (age 37, Sha Tin station) | - | SCMP | 高 / High |
-| 18:30 | 火勢蔓延至宏欣樓 / Fire spreads to Wang Yan House | 宏欣樓 / Wang Yan House | SCMP | 高 / High |
-| 18:30 | 升級至五級火警（最高）/ Upgraded to No. 5 alarm (highest) | - | SCMP | 高 / High |
-| 18:45 | 更新傷亡數字 / Updated casualty count released | - | SCMP | 高 / High |
-
----
-
-### 火勢蔓延順序 / Fire Spread Sequence
-
-```
-           起火點 / Origin
-               │
-               ▼
-    ┌─────────────────────┐
-    │   宏祥樓             │
-    │   Wang Cheong House  │  ← 14:51 起火 / Fire starts
-    └─────────────────────┘
-               │
-               ▼
-    ┌─────────────────────┐
-    │   宏泰樓 / 宏盛樓     │
-    │   Wang Tai / Shing   │  ← [時間待確認 / Time TBC]
-    └─────────────────────┘
-               │
-               ▼
-    ┌─────────────────────┐
-    │   宏欣樓             │
-    │   Wang Yan House     │  ← 18:30 確認蔓延 / Spread confirmed
-    └─────────────────────┘
-               │
-               ▼
-    ┌─────────────────────┐
-    │   其他大廈（共7座）   │
-    │   Other blocks (7)   │  ← [詳情待確認 / Details TBC]
-    └─────────────────────┘
-```
-
-**受影響大廈 / Affected Buildings**: 7 of 8 blocks
-
----
-
-## 火災後續 / Post-Fire
-
-| 日期 / Date | 時間 / Time | 事件 / Event | 來源 / Source |
-|-------------|-------------|--------------|---------------|
-| 2025-11-27 | - | 火勢持續燃燒 / Fire continues burning | TIME |
-| 2025-11-28 (Fri) | - | 只剩少數單位仍在燃燒 / Only few units still burning | TIME |
-| 2025-11-28 | - | 火勢完全撲熄 / Fire fully extinguished | TIME |
-| 2025-11-29 | - | 3名建築公司人員被捕 / 3 construction firm personnel arrested | TIME |
-| 2025-12-01 | - | 14人被捕 / 14 people arrested | PBS |
-| 2025-12-01 | - | 發現7/20安全網樣本不合格 / 7/20 netting samples found non-compliant | PBS |
-
----
-
-## 傷亡統計演變 / Casualty Count Evolution
-
-| 日期/時間 / Date/Time | 死亡 / Deaths | 失蹤 / Missing | 受傷 / Injured | 來源 / Source |
-|------------------------|---------------|----------------|----------------|---------------|
-| 2025-11-26 18:45 | 44+ | 279 | 多人 / Multiple | SCMP |
-| 2025-11-27 | 128+ | - | - | TIME |
-| 2025-12-01 | 151+ | 數十人 / Dozens | - | PBS |
-| 2025-12-06 | 159 | 31 | - | Web search |
-
----
-
-## 待確認事項 / Items to Verify
-
-### 高優先 / High Priority
-
-- [ ] 每座大廈嘅確切起火/蔓延時間 / Exact ignition/spread times for each building
-- [ ] 二級火警升級時間 / Time of No. 2 alarm upgrade
-- [ ] 火警警報系統狀態（未響起）/ Fire alarm system status (failed to activate)
-- [ ] 建築工人吸煙報告嘅確切時間/地點 / Exact time/location of worker smoking reports
-
-### 中優先 / Medium Priority
-
-- [ ] 疏散開始時間 / Evacuation start time
-- [ ] 保安員逐戶敲門時間 / Time of security guard door-knocking
-- [ ] 消防車抵達時間 / Fire engine arrival times
-- [ ] 傷者送院時間 / Times injured transported to hospital
-
----
-
-## 來源圖例 / Source Legend
-
-| 代號 / Code | 來源 / Source | 可信度 / Reliability |
-|-------------|---------------|---------------------|
-| SCMP | 南華早報 / South China Morning Post | 高 / High |
-| TIME | TIME Magazine | 高 / High |
-| PBS | PBS NewsHour | 高 / High |
-| [需核實] | 需要交叉核實 / Needs cross-verification | - |
-
----
-
-## 核實狀態 / Verification Status
-
-- [x] 起火時間已核實 / Ignition time verified
-- [x] 火警升級時間已核實（3-5級）/ Alarm upgrade times verified (levels 3-5)
-- [x] 消防員殉職時間已核實 / Firefighter death time verified
-- [ ] 每座大廈蔓延時間需更多來源 / Spread times per building need more sources
-- [ ] 疏散時間線需第一手陳述 / Evacuation timeline needs first-hand accounts
-
----
-
-*最後更新 / Last updated: 2025-12-06*
-
-*本時間線會隨新證據持續更新。如有任何錯誤或遺漏，請提交更正。*
-
-*This timeline will be continuously updated with new evidence. Please submit corrections for any errors or omissions.*
+*   **HK01 (2025-11-26 timeline):** `evidence/news/2025-11-26-hk01-fire-timeline-witnesses/metadata.yaml`
+*   **Ming Pao (2025-11-28 analysis):** `evidence/news/2025-11-28-mingpao-fire-analysis/metadata.yaml`
+*   **Dimsum Daily (CCTV Report):** `evidence/news/2025-12-01-dimsumdaily-fire-alarm/metadata.yaml`
+*   **The Guardian (2025-11-26 report):** `evidence/news/2025-11-26-guardian-fire-towers/metadata.yaml`
+*   **HKFP (2025-12-03 report):** `evidence/news/2025-12-03-hkfp-death-toll-159/metadata.yaml`
+*   **Reuters (2025-11-29 report):** `evidence/news/2025-11-29-reuters-china-inspection/metadata.yaml`
+*   **AP (2025-12-03 report):** `evidence/news/2025-12-03-ap-abcnews-159-killed/metadata.yaml`
+*   **Wikipedia:** `evidence/news/2025-12-06-wikipedia-wang-fuk-fire/metadata.yaml`
