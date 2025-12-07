@@ -28,7 +28,7 @@
 
 ## 3. 環境因素 / Environmental Factors
 
-*   **天氣 (Weather):** 火災發生時香港發出紅色火災危險警告，天氣乾燥，風勢強勁（西北風約16公里/小時），助長火勢。<br>Red Fire Danger Warning in effect, dry conditions with strong winds (~16 km/h NW wind) exacerbated fire spread.
+*   **天氣 (Weather):** 火災發生時香港發出紅色火災危險警告，天氣乾燥，風勢強勁（西北風約16公里/小時），助長火勢。事發當日氣溫約23°C，相對濕度約42%。<br>Red Fire Danger Warning in effect, dry conditions with strong winds (~16 km/h NW wind) exacerbated fire spread. Ambient temperature was around 23°C, with relative humidity around 42%.
 *   **時間 (Time):** 火災發生喺下午，居民可能未有充分時間應變。<br>Afternoon incident may have limited residents' response time.
 
 ## 4. FDS 模擬相關性 / FDS Simulation Relevance
